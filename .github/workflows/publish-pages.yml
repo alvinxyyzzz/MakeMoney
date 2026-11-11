@@ -1,0 +1,57 @@
+name: Publish MakeMoney to GitHub Pages
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "index.html"
+      - "styles.css"
+      - "app.js"
+      - "engine.js"
+      - "sw.js"
+      - "manifest.webmanifest"
+      - "icons/**"
+      - "data/**"
+      - ".github/workflows/publish-pages.yml"
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "makemoney-pages"
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Publish static mobile app
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate app and required data
+        run: |
+          node tests/engine.test.cjs
+          python -m json.tool data/catalog.json >/dev/null
+          test -s index.html
+          test -s data/NVDA.json
+      - name: Create publish directory with only static app assets
+        run: |
+          mkdir -p site/data site/icons
+          cp index.html styles.css app.js engine.js sw.js manifest.webmanifest site/
+          cp icons/icon.svg icons/icon-180.png site/icons/
+          cp data/*.json site/data/
+          touch site/.nojekyll
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: site
+      - name: Deploy to Pages
+        id: deploy
+        uses: actions/deploy-pages@v4
