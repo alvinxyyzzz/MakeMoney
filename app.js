@@ -38,7 +38,7 @@ async function load(t){
 async function init(){
  restore();
  try{var r=await fetch("./data/catalog.json?v="+Date.now(),{cache:"no-store"});if(r.ok)state.catalog=await r.json();}catch(e){}
- render();await Promise.all([load(state.symbol),load("SPY")]);
+ render();await Promise.all(Array.from(new Set([state.symbol,"SPY"].concat(state.portfolio.map(function(p){return p.symbol;})))).map(load));
 }
 function icon(name){
  var path={
