@@ -31,8 +31,8 @@ Source: [yfinance](https://github.com/ranaroussi/yfinance). Yahoo Finance API ma
 
 This repository is **private**. GitHub Pages on GitHub Free is generally limited to public repositories; Pages from a private repository is available to eligible paid GitHub plans such as GitHub Pro. Even when the source repository is private, **the deployed Pages website and data should not be assumed private**.
 
-1. In GitHub open **Settings → Pages → Build and deployment → Deploy from a branch → main / (root) → Save**, only if your plan permits Pages from private repositories.
-2. Confirm deployment is successful. The normal project Pages URL would be https://alvinxyyzzz.github.io/MakeMoney/ — **do not assume this URL works until GitHub confirms it**.
+1. In GitHub open **Settings → Pages → Build and deployment → Source → GitHub Actions**. This one-time Pages enablement must be completed by the repository owner (the existing GitHub connection cannot change that setting). The publishing workflow is already committed at `.github/workflows/publish-pages.yml`.
+2. After enabling Pages, open **Actions → Publish MakeMoney to GitHub Pages → Run workflow**. Confirm the workflow succeeds and then visit https://alvinxyyzzz.github.io/MakeMoney/ . **The URL does not work before the first successful Pages deployment.** Future pushes of market-data JSON also trigger this publishing workflow.
 3. On iPhone Safari open the verified site → Share → **Add to Home Screen**. The iOS icon should come from icons/icon-180.png; after replacing a cached icon, remove and re-add the home screen shortcut.
 4. If you need private access and do not have a compatible plan, use a trusted private host or a local server. Do not make the repo public merely for convenience without checking data rights and access controls.
 
