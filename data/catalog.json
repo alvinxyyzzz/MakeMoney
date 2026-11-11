@@ -1,7 +1,116 @@
 {
-  "updated_at": null,
+  "updated_at": "2026-11-11T10:31:38Z",
   "provider": "Yahoo Finance via yfinance (personal research only)",
   "price_mode": "historical adjusted OHLC; daily; not live",
-  "symbols": {},
+  "symbols": {
+    "NVDA": {
+      "first": "2018-11-12",
+      "last": "2026-11-10",
+      "rows": 2009,
+      "status": "updated"
+    },
+    "GOOGL": {
+      "first": "2018-11-12",
+      "last": "2026-11-10",
+      "rows": 2009,
+      "status": "updated"
+    },
+    "MSFT": {
+      "first": "2018-11-12",
+      "last": "2026-11-10",
+      "rows": 2009,
+      "status": "updated"
+    },
+    "AAPL": {
+      "first": "2018-11-12",
+      "last": "2026-11-10",
+      "rows": 2009,
+      "status": "updated"
+    },
+    "TSLA": {
+      "first": "2018-11-12",
+      "last": "2026-11-10",
+      "rows": 2009,
+      "status": "updated"
+    },
+    "TSM": {
+      "first": "2018-11-12",
+      "last": "2026-11-10",
+      "rows": 2008,
+      "status": "updated"
+    },
+    "ADBE": {
+      "first": "2018-11-12",
+      "last": "2026-11-10",
+      "rows": 2009,
+      "status": "updated"
+    },
+    "NOW": {
+      "first": "2018-11-12",
+      "last": "2026-11-10",
+      "rows": 2009,
+      "status": "updated"
+    },
+    "AMZN": {
+      "first": "2018-11-12",
+      "last": "2026-11-10",
+      "rows": 2009,
+      "status": "updated"
+    },
+    "META": {
+      "first": "2018-11-12",
+      "last": "2026-11-10",
+      "rows": 2009,
+      "status": "updated"
+    },
+    "AMD": {
+      "first": "2018-11-12",
+      "last": "2026-11-10",
+      "rows": 2009,
+      "status": "updated"
+    },
+    "CEG": {
+      "first": "2022-01-19",
+      "last": "2026-11-10",
+      "rows": 1208,
+      "status": "updated"
+    },
+    "SPY": {
+      "first": "2018-11-12",
+      "last": "2026-11-10",
+      "rows": 2009,
+      "status": "updated"
+    },
+    "VOO": {
+      "first": "2018-11-12",
+      "last": "2026-11-10",
+      "rows": 2009,
+      "status": "updated"
+    },
+    "QQQM": {
+      "first": "2020-10-13",
+      "last": "2026-11-10",
+      "rows": 1527,
+      "status": "updated"
+    },
+    "SCHD": {
+      "first": "2018-11-12",
+      "last": "2026-11-10",
+      "rows": 2008,
+      "status": "updated"
+    },
+    "RSP": {
+      "first": "2018-11-12",
+      "last": "2026-11-10",
+      "rows": 2009,
+      "status": "updated"
+    },
+    "IJR": {
+      "first": "2018-11-12",
+      "last": "2026-11-10",
+      "rows": 2009,
+      "status": "updated"
+    }
+  },
   "failed": []
 }
