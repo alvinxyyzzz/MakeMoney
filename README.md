@@ -56,6 +56,8 @@ CSV remains in your browser's local storage; it can be included in the private J
 
 Run local regression tests with: **node tests/engine.test.cjs**.
 
+Detailed architecture and model validation plan: [docs/research-design.md](docs/research-design.md).
+
 ## Open-source research foundation
 
 | Project | Role / planned work | V1 actual runtime |
