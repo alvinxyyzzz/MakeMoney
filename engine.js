@@ -97,7 +97,7 @@
         s=holding;
       }
       if(id==="volatility") s=up&&f.sma50[i]>f.sma200[i]&&isNum(f.vol20[i])?clamp(0.18/Math.max(f.vol20[i],0.01),0,1):0;
-      if(id==="ensemble") { var q=strength(f,i).score;s=q>=2?1:(q<=-2?0:0.5); }
+      if(id==="ensemble") { var q=strength(f,i).score;s=!up?0:(q>=2?1:(q<=-2?0:0.5)); }
       result.push(s);
     }
     return result;
