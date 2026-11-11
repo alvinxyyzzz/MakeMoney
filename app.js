@@ -164,7 +164,7 @@ function render(){
 }
 function selectSymbol(t){if(!safeSymbol(t))return;state.symbol=t;persist();render();load(t);}
 function downloadJSON(){
- var body={format:"MakeMoney-backup-v1",exported_at:new Date().toISOString(),portfolio:state.portfolio,custom:state.custom,settings:{symbol:state.symbol,cost:state.cost,capital:state.capital,risk:state.risk,allocation:state.allocation,cash:state.cash}};
+ var body={format:"MakeMoney-backup-v1",exported_at:new Date().toISOString(),portfolio:state.portfolio,custom:state.custom,settings:{symbol:state.symbol,cost:state.cost,capital:state.capital,risk:state.risk,allocation:state.allocation,cash:state.cash,ddLimit:state.ddLimit}};
  var blob=new Blob([JSON.stringify(body,null,2)],{type:"application/json"}),url=URL.createObjectURL(blob),a=document.createElement("a");
  a.href=url;a.download="MakeMoney-private-backup-"+todayUTC()+".json";document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(url);},1000);
  toast("私人備份已開始下載，請妥善保存。");
@@ -191,7 +191,7 @@ document.addEventListener("change",async function(e){
    try{var j=JSON.parse(await t.files[0].text());if(j.format!=="MakeMoney-backup-v1"||!Array.isArray(j.portfolio))throw Error("不是有效的 MakeMoney 備份");
      state.portfolio=j.portfolio.filter(function(x){return x&&safeSymbol(x.symbol)&&+x.shares>0&&+x.cost>0;}).slice(0,100);
      state.custom={};Object.keys(j.custom||{}).forEach(function(s){if(safeSymbol(s)){var a=Q.normalizeBars(j.custom[s]);if(a.length>1)state.custom[s]=a.map(function(x){return [x.d,x.o,x.h,x.l,x.c,x.v];});}});
-     if(j.settings){["cost","capital","risk","allocation","cash"].forEach(function(k){if(Number.isFinite(+j.settings[k])&&+j.settings[k]>=0)state[k]=+j.settings[k];});}
+     if(j.settings){["cost","capital","risk","allocation","cash","ddLimit"].forEach(function(k){if(Number.isFinite(+j.settings[k])&&+j.settings[k]>=0)state[k]=+j.settings[k];});}
      state.data={};persist();render();toast("私人備份匯入成功。");await load(state.symbol);}
    catch(err){toast("備份匯入失敗："+err.message,true);}
  }
