@@ -6,7 +6,7 @@ var DEFAULTS=["NVDA","GOOGL","MSFT","AAPL","TSLA","TSM","ADBE","NOW","AMZN","MET
 var STORAGE="makemoney-personal-v1", state={
  tab:"research",symbol:"NVDA",period:"1Y",strategy:"ensemble",cost:10,
  portfolio:[],custom:{},catalog:null,data:{},loading:{},errors:{},asof:null,
- capital:20000,risk:1,allocation:20,cash:0
+ capital:20000,risk:1,allocation:20,cash:0,ddLimit:40
 };
 var root=document.getElementById("app"),status=document.getElementById("status");
 function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(x){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[x];});}
@@ -18,10 +18,10 @@ function priceLabel(n){return usd(n,2);}
 function todayUTC(){return new Date().toISOString().slice(0,10);}
 function safeSymbol(x){return /^[A-Z0-9.^-]{1,12}$/.test(x||"");}
 function persist(){
- try{localStorage.setItem(STORAGE,JSON.stringify({symbol:state.symbol,period:state.period,strategy:state.strategy,cost:state.cost,portfolio:state.portfolio,custom:state.custom,capital:state.capital,risk:state.risk,allocation:state.allocation,cash:state.cash}));}
+ try{localStorage.setItem(STORAGE,JSON.stringify({symbol:state.symbol,period:state.period,strategy:state.strategy,cost:state.cost,portfolio:state.portfolio,custom:state.custom,capital:state.capital,risk:state.risk,allocation:state.allocation,cash:state.cash,ddLimit:state.ddLimit}));}
  catch(e){toast("本機儲存空間不足；請先匯出備份或刪除大型匯入資料。",true);}
 }
-function restore(){try{var x=JSON.parse(localStorage.getItem(STORAGE)||"{}");if(safeSymbol(x.symbol))state.symbol=x.symbol;if(["1Y","3Y","ALL"].includes(x.period))state.period=x.period;if(Q.STRATEGIES[x.strategy])state.strategy=x.strategy;if(Number.isFinite(+x.cost))state.cost=Math.min(200,Math.max(0,+x.cost));if(Array.isArray(x.portfolio))state.portfolio=x.portfolio.filter(function(p){return p&&safeSymbol(p.symbol)&&Number.isFinite(+p.shares)&&+p.shares>0;}).slice(0,100);if(x.custom&&typeof x.custom==="object")state.custom=x.custom;["capital","risk","allocation","cash"].forEach(function(k){if(Number.isFinite(+x[k])&&+x[k]>=0)state[k]=+x[k];});}catch(e){}}
+function restore(){try{var x=JSON.parse(localStorage.getItem(STORAGE)||"{}");if(safeSymbol(x.symbol))state.symbol=x.symbol;if(["1Y","3Y","ALL"].includes(x.period))state.period=x.period;if(Q.STRATEGIES[x.strategy])state.strategy=x.strategy;if(Number.isFinite(+x.cost))state.cost=Math.min(200,Math.max(0,+x.cost));if(Array.isArray(x.portfolio))state.portfolio=x.portfolio.filter(function(p){return p&&safeSymbol(p.symbol)&&Number.isFinite(+p.shares)&&+p.shares>0;}).slice(0,100);if(x.custom&&typeof x.custom==="object")state.custom=x.custom;["capital","risk","allocation","cash","ddLimit"].forEach(function(k){if(Number.isFinite(+x[k])&&+x[k]>=0)state[k]=+x[k];});}catch(e){}}
 function toast(msg,bad){status.textContent=msg;status.className=bad?"toast bad":"toast";status.hidden=false;clearTimeout(window._toastTimer);window._toastTimer=setTimeout(function(){status.hidden=true;},4500);}
 function named(t){var names={NVDA:"NVIDIA",GOOGL:"Alphabet",MSFT:"Microsoft",AAPL:"Apple",TSLA:"Tesla",TSM:"TSMC ADR",ADBE:"Adobe",NOW:"ServiceNow",AMZN:"Amazon",META:"Meta",AMD:"AMD",CEG:"Constellation Energy",SPY:"S&P 500 ETF",VOO:"Vanguard S&P 500",QQQM:"Nasdaq-100 ETF",SCHD:"Dividend ETF",RSP:"S&P 500 Equal Weight",IJR:"Small-Cap ETF"};return names[t]||t;}
 function bars(t){return state.data[t]|| (state.custom[t]&&Q.normalizeBars(state.custom[t])) || null;}
@@ -121,13 +121,14 @@ function resultMetrics(m,other){
 }
 function backtestPage(){
  var t=state.symbol,b=bars(t);
- var html='<div class="section-head"><div><div class="eyebrow">STRATEGY LAB / HISTORICAL</div><h2>策略回測</h2></div></div><div class="card controls"><label>選擇標的<select id="back-symbol">'+allSymbols().map(function(x){return '<option value="'+esc(x)+'" '+(t===x?"selected":"")+'">'+esc(x)+'</option>';}).join("")+'</select></label><label>策略<select id="strategy-select">'+Object.keys(Q.STRATEGIES).map(function(x){return '<option value="'+x+'" '+(state.strategy===x?"selected":"")+'">'+Q.STRATEGIES[x]+'</option>';}).join("")+'</select></label><label>雙邊費率 / 單次換倉 (bps)<input id="cost-input" type="number" value="'+state.cost+'" min="0" max="200" step="1"></label></div>';
+ var html='<div class="section-head"><div><div class="eyebrow">STRATEGY LAB / HISTORICAL</div><h2>策略回測</h2></div></div><div class="card controls"><label>選擇標的<select id="back-symbol">'+allSymbols().map(function(x){return '<option value="'+esc(x)+'" '+(t===x?"selected":"")+'">'+esc(x)+'</option>';}).join("")+'</select></label><label>策略<select id="strategy-select">'+Object.keys(Q.STRATEGIES).map(function(x){return '<option value="'+x+'" '+(state.strategy===x?"selected":"")+'">'+Q.STRATEGIES[x]+'</option>';}).join("")+'</select></label><label>雙邊費率 / 單次換倉 (bps)<input id="cost-input" type="number" value="'+state.cost+'" min="0" max="200" step="1"></label><label>回撤警戒線 %<input id="dd-limit" type="number" value="'+state.ddLimit+'" min="5" max="80" step="5"></label></div>';
  if(!b||b.length<320)return html+welcome(t);
  var res;
  try{res=Q.backtest(b,state.strategy,state.cost);}catch(e){return html+'<div class="card warning-card">'+esc(e.message)+'</div>';}
  html+='<div class="card chart-card"><div class="chart-top"><div><div class="eyebrow">10,000 USD INITIAL CAPITAL / DAILY CLOSE</div><div class="chart-title">'+esc(Q.STRATEGIES[state.strategy])+' <span class="subtle">vs 買入持有</span></div></div><span class="chip">交易成本 '+state.cost+' bps</span></div>'+singleLineChart(res.strategy,res.benchmark,res.dates.map(function(x){return x.slice(2);}))+ '<div class="legend"><span><i class="dot lime"></i>策略</span><span><i class="dot amber"></i>買入持有</span></div></div>';
  html+='<div class="section-head spaced"><div><div class="eyebrow">FULL PERIOD</div><h2>完整回測區間</h2></div><span class="chip">'+esc(res.dates[0])+' → '+esc(res.dates[res.dates.length-1])+'</span></div>'+resultMetrics(res.overall,res.hold);
  html+='<div class="section-head spaced"><div><div class="eyebrow">CHRONOLOGICAL HOLDOUT</div><h2>最近 25% 時間區間</h2></div><span class="chip">起始 '+esc(res.splitDate)+'</span></div>'+resultMetrics(res.test,res.testHold);
+ if(res.overall.maxDrawdown < -state.ddLimit/100) html+='<div class="card warning-card"><div class="eyebrow">RISK ALERT</div><h3>歷史最大回撤已超過 '+state.ddLimit+'% 警戒線</h3><p>這個策略在樣本期間曾出現 '+pct(res.overall.maxDrawdown)+' 的高點至低點回撤。請降低假設曝險、重新檢查策略或選擇更合適的研究方案。警戒不代表系統可將未來損失限制於此。</p></div>';
  html+='<div class="stat-row"><div><span>持有曝險比例</span><b>'+frac(res.exposure)+'</b></div><div><span>換倉次數</span><b>'+fmt(res.tradeCount)+'</b></div><div><span>累計單向換倉量</span><b>'+fmt(res.turnover,1)+'×</b></div><div><span>執行延遲</span><b>1 個交易日</b></div></div>';
  html+='<div class="card note"><b>怎麼讀這個回測？</b><p>所有模型使用固定參數，指標在當日收盤後計算、下一交易日收盤才視為執行，避免使用尚未出現的價格。成本按照換倉比例計算；未納入真實買賣價差、稅負、融資、借券、滑價、個別除權日差異。此處最後25%是時間切分對照，不是經過完全封存的獨立盲測，歷史好績效不代表未來收益。</p></div>';
  return html;
@@ -181,6 +182,7 @@ document.addEventListener("change",async function(e){
  if(t.id==="symbol-select"||t.id==="back-symbol"){selectSymbol(t.value);return;}
  if(t.id==="strategy-select"){state.strategy=t.value;persist();render();return;}
  if(t.id==="cost-input"){state.cost=Math.min(200,Math.max(0,+t.value||0));persist();render();return;}
+ if(t.id==="dd-limit"){state.ddLimit=Math.min(80,Math.max(5,+t.value||40));persist();render();return;}
  if(t.id==="csv-upload"&&t.files&&t.files[0]){
    try{var csv=await t.files[0].text(),b=Q.parseCSV(csv);if(b.length<255)throw Error("只有 "+b.length+" 天；至少 255 天才能產生研究訊號。");state.custom[state.symbol]=b.map(function(x){return [x.d,x.o,x.h,x.l,x.c,x.v];});state.data[state.symbol]=b;persist();render();toast("匯入成功："+b.length+" 個交易日。此資料保留在本機。");}
    catch(err){toast("CSV 匯入失敗："+err.message,true);}
