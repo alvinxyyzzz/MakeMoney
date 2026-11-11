@@ -11,6 +11,7 @@ on:
       - ".github/workflows/update-market-data.yml"
       - "scripts/update_prices.py"
       - "requirements.txt"
+      - "tests/engine.test.cjs"
 
 permissions:
   contents: write
