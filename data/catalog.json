@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-11-11T10:31:38Z",
+  "updated_at": "2026-11-11T11:00:29Z",
   "provider": "Yahoo Finance via yfinance (personal research only)",
   "price_mode": "historical adjusted OHLC; daily; not live",
   "symbols": {
