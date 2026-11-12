@@ -69,13 +69,13 @@ function icon(name){
  return '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+path+'</svg>';
 }
 function tabs(){
- var links=[["weekly","本週決策","chart"],["portfolio","我的持倉","shield"],["discover","發掘機會","layers"],["research","個股研究","book"],["backtest","策略實驗","sliders"]];
+ var links=[["weekly","本週決策","chart"],["portfolio","我的持倉","shield"],["discover","市場機會","layers"]];
  return '<nav class="tabs" aria-label="主選單">'+links.map(function(t){return '<button data-tab="'+t[0]+'" class="'+(state.tab===t[0]?"active":"")+'">'+icon(t[2])+'<span>'+t[1]+'</span></button>';}).join("")+'</nav>';
 }
 function top(){
  var b=bars(state.symbol),last=b&&b[b.length-1],date=last&&last.d;
  var delay=date?Math.round((new Date(todayUTC()+"T00:00:00Z")-new Date(date+"T00:00:00Z"))/86400000):null;
- return '<div class="topline"><div><div class="eyebrow"><span class="live-dot"></span> PRIVATE QUANT TERMINAL <span class="ver">v2.0 WEEKLY</span></div><h1><span class="brand-mark">M<span>.</span></span> MakeMoney</h1><div class="subtitle">Research first. Trade with evidence.</div></div><div class="asof"><span class="subtle">歷史資料截至</span><b>'+esc(date||"等待行情")+'</b><span class="data-pill '+(delay!=null&&delay>4?"stale":"")+'">'+(delay==null?"未載入":delay>4?"資料可能過期":"日線 / 非即時")+'</span></div></div>';
+ return '<div class="topline"><div><div class="eyebrow"><span class="live-dot"></span> WEEKLY INVESTMENT COPILOT <span class="ver">v3.0 PRIVATE RESEARCH</span></div><h1><span class="brand-mark">M<span>.</span></span> MakeMoney</h1><div class="subtitle">Research first. Trade with evidence.</div></div><div class="asof"><span class="subtle">歷史資料截至</span><b>'+esc(date||"等待行情")+'</b><span class="data-pill '+(delay!=null&&delay>4?"stale":"")+'">'+(delay==null?"未載入":delay>4?"資料可能過期":"日線 / 非即時")+'</span></div></div>';
 }
 function notice(){return '<div class="notice"><span class="notice-mark">◎</span><span>個人投資研究工具，不是即時交易報價、投資保證或自動下單系統。所有價位均為技術情境估算，請核對券商行情。</span></div>';}
 function selector(){
@@ -174,11 +174,12 @@ function portfolioPage(){
  html+='<div class="card import-review"><h3>先核對匯入預覽</h3><p>辨識 '+pv.holdings.length+' 個標的，跳過 '+pv.skipped.length+' 行。確認股數、成本無誤才取代既有持倉。</p><div class="import-table">'+pv.holdings.map(function(p){return '<div><strong>'+esc(p.symbol)+'</strong><span>'+fmt(p.shares,4)+' 股</span><b>'+usd(p.cost)+'/股</b></div>';}).join("")+'</div><div class="row-actions"><button class="button primary" data-action="confirm-import">確認取代持倉</button><button class="button ghost" data-action="cancel-import">取消</button></div></div>';
  }
  html+='<div class="metric-grid">'+metric("已輸入持倉成本",usd(capital,0),P.length+" 個標的")+metric("可估算市值",known?usd(value,0):"—",known+"/"+P.length+" 個有價格")+metric("已定價持倉損益",known?pct((value-list.reduce(function(s,x){return s+(x.mv!=null?x.invested:0);},0))/Math.max(1,list.reduce(function(s,x){return s+(x.mv!=null?x.invested:0);},0))):"—","未計匯率、配息、稅費")+metric("現金（手動設定）",usd(state.cash,0),"不會自動連接券商")+'</div>';
+ if(P.length&&known<P.length)html+='<div class="portfolio-caution">⚠ '+(P.length-known)+' 檔持倉尚未定價。暫不計算完整組合的集中度與總資產；請更新其行情資料。</div>';
  html+='<div class="card holdings-card"><div class="card-heading"><h3>持倉明細</h3><span class="chip">'+P.length+' 檔</span></div>';
  if(!P.length)html+='<p class="empty-row">尚未新增持倉。填入股票、股數和每股成本即可開始分析。</p>';
  else html+='<div class="holdings">'+list.map(function(x,idx){var pl=x.mv==null?NaN:x.mv/x.invested-1;return '<div class="holding"><div class="ticker-emblem">'+esc(x.symbol.slice(0,2))+'</div><div class="holding-name"><b>'+esc(x.symbol)+'</b><small>'+fmt(x.shares,3)+' 股 · 成本 '+usd(x.cost)+'</small></div><div class="holding-value"><b>'+(x.mv==null?"等待行情":usd(x.mv,0))+'</b><small class="'+(pl>=0?"positive":"negative")+'">'+(Number.isFinite(pl)?pct(pl):"未定價")+'</small></div><button class="remove" data-remove="'+idx+'" aria-label="刪除 '+esc(x.symbol)+'">×</button></div>';}).join("")+'</div>';
  html+='</div><div class="card add-card"><h3>新增持倉</h3><form id="holding-form" class="holding-form"><label>股票代號<input name="symbol" placeholder="例如 NVDA" maxlength="12" required></label><label>股數<input type="number" name="shares" min=".0001" step="any" required placeholder="10"></label><label>平均成本 USD<input type="number" name="cost" min=".001" step="any" required placeholder="100"></label><button type="submit" class="button primary">+ 加入持倉</button></form></div><div class="card add-card"><h3>手動現金餘額</h3><form id="cash-form" class="inline-form"><input type="number" name="cash" min="0" step=".01" value="'+state.cash+'" aria-label="現金餘額"><button class="button ghost" type="submit">儲存</button></form></div>';
- if(known)html+='<div class="section-head spaced"><div><div class="eyebrow">CONCENTRATION WATCH</div><h2>持倉集中度</h2></div></div><div class="card concentration">'+list.filter(function(x){return x.mv!=null;}).sort(function(a,b){return b.mv-a.mv;}).map(function(x){return '<div class="bar-row"><span>'+esc(x.symbol)+'</span><div class="bar-track"><i style="width:'+(x.mv/value*100).toFixed(2)+'%"></i></div><b>'+frac(x.mv/value)+'</b></div>';}).join("")+'</div>';
+ if(known===P.length&&known>0)html+='<div class="section-head spaced"><div><div class="eyebrow">CONCENTRATION WATCH</div><h2>持倉集中度</h2></div></div><div class="card concentration">'+list.filter(function(x){return x.mv!=null;}).sort(function(a,b){return b.mv-a.mv;}).map(function(x){return '<div class="bar-row"><span>'+esc(x.symbol)+'</span><div class="bar-track"><i style="width:'+(x.mv/value*100).toFixed(2)+'%"></i></div><b>'+frac(x.mv/value)+'</b></div>';}).join("")+'</div>';
  return html;
 }
 function methodPage(){
