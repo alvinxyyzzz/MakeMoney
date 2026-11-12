@@ -10,6 +10,7 @@ const pct=v=>Number.isFinite(v)?(v>0?"+":"")+(v*100).toFixed(1)+"%":"—";
 const short=v=>Number.isFinite(v)?(v*100).toFixed(0)+"%":"—";
 const dateNow=()=>new Date().toISOString().slice(0,10);
 const pick=(state,news,symbol)=>((news&&news.symbols&&news.symbols[symbol])||[]).slice(0,4);
+const modelOf=(state,symbol)=>state.model&&state.model.passed_research_gate&&state.model.symbols?state.model.symbols[symbol]:null;
 const labelClass=cls=>({candidate:"signal-green",defensive:"signal-red",stale:"signal-amber",wait:"signal-neutral"}[cls]||"signal-neutral");
 const SECTOR_PRIORITY=["AI 算力","AI 半導體","半導體製造","AI 基礎建設","電力與散熱","電力與核能","大型科技平台","企業軟體","網路安全","必需消費","可選消費","金融","醫療","工業","不動產 REIT","石油能源"];
 function report(state){
@@ -29,7 +30,7 @@ function marketBanner(info,news){
 function opportunityCards(items,state,news,limit){
  return '<div class="weekly-cards">'+items.slice(0,limit||6).map((x,i)=>{
  const headline=pick(state,news,x.symbol)[0];
- return '<button class="weekly-tile" data-open-symbol="'+safe(x.symbol)+'"><div class="tile-top"><span class="tile-ticker">'+safe(x.symbol)+'</span><span class="tile-sector">'+safe(D.SECTORS[x.symbol]||"其他")+'</span></div><div class="tile-value">'+usd(x.price)+'</div><div class="tile-bottom"><span class="score-circle">'+x.score+'<small>/100</small></span><span class="'+labelClass(x.className)+'">'+safe(x.decision)+'</span></div><p>'+safe(x.reason)+'</p>'+(headline?'<div class="tile-headline">新聞：'+safe(headline.title)+'</div>':'')+'</button>';
+ return '<button class="weekly-tile" data-open-symbol="'+safe(x.symbol)+'"><div class="tile-top"><span class="tile-ticker">'+safe(x.symbol)+'</span><span class="tile-sector">'+safe(D.SECTORS[x.symbol]||"其他")+'</span></div><div class="tile-value">'+usd(x.price)+'</div><div class="tile-bottom"><span class="score-circle">'+x.score+'<small>/100</small></span><span class="'+labelClass(x.className)+'">'+safe(x.decision)+'</span></div><p>'+safe(x.reason)+'</p><div class="tile-headline">'+(modelOf(state,x.symbol)?'已通過研究門檻的模型分位 '+modelOf(state,x.symbol).rank+'%':'機器學習目前無可用研究訊號')+'</div>'+(headline?'<div class="tile-headline">新聞：'+safe(headline.title)+'</div>':'')+'</button>';
  }).join("")+'</div>';
 }
 function weekly(state,news){
@@ -37,6 +38,7 @@ function weekly(state,news){
  const candidates=info.ranked.filter(x=>!holdingNames.has(x.symbol)&&!["大盤 ETF","股息 ETF","等權 ETF","小盤 ETF"].includes(D.SECTORS[x.symbol]||"")&&x.className!=="stale");
  let html='<section class="weekly-head"><div><div class="eyebrow">YOUR INVESTMENT OPERATING SYSTEM</div><h2>本週決策</h2><p class="subtle">先看持倉，再看大盤，最後才決定是否增加新的標的。</p></div><button data-ai="portfolio" class="button primary">✦ 用 AI 深入分析</button></section>';
  html+=marketBanner(info,news);
+ html+='<div class="model-quality"><span>機器學習交叉檢查：</span><b>'+(state.model&&state.model.passed_research_gate?'LightGBM 研究門檻已通過':'LightGBM 未通過樣本外門檻 / 暫不採用')+'</b><small>'+(state.model&&Number.isFinite(state.model.holdout_mean_spearman_ic)?'Rank IC '+state.model.holdout_mean_spearman_ic.toFixed(4):'暫無可採用實驗結果')+'</small></div>';
  if(p){
    const holdings=(state.portfolio||[]).map(x=>{
     const a=info.ranked.find(r=>r.symbol===x.symbol),data=state.data[x.symbol],last=data&&data.length?data[data.length-1]:null,weight=p.list.find(k=>k.symbol===x.symbol);
@@ -86,6 +88,7 @@ function detail(state,news,symbol){
  html+='<div class="metric-grid">'+[
   ["相對 SPY 63日",pct(x.relative)],["12−1 動能",pct(x.momentum)],["20日年化波動",pct(x.vol)],["近252日回撤",pct(x.dd)]
  ].map(a=>'<div class="metric"><span>'+a[0]+'</span><strong>'+a[1]+'</strong></div>').join("")+'</div>';
+ html+='<div class="card note"><b>LightGBM 模型驗證</b><p>'+(modelOf(state,symbol)?'樣本外已通過門檻，模型排名 '+modelOf(state,symbol).rank+' 分位；非勝率、非估值。':'模型未在樣本外明顯勝過簡單基準，暫不將它用作建倉信號。')+'</p></div>';
  html+='<div class="section-head spaced"><div><div class="eyebrow">SIGNAL ANATOMY</div><h2>這個結論的依據</h2></div></div><div class="factor-grid">'+x.factors.map(f=>'<div class="factor"><div class="factor-badge '+(f.points>=f.weight*.65?"pos":f.points<=f.weight*.3?"neg":"neu")+'">'+(f.points===null?"—":Math.round(f.points))+'</div><div><strong>'+safe(f.name)+'</strong><small>'+safe(f.detail)+'</small></div></div>').join("")+'</div>';
  html+='<div class="section-head spaced"><div><div class="eyebrow">SCENARIO MAP</div><h2>執行規劃，不是價格預測</h2></div></div>';
  const lv=x.levels;
@@ -104,7 +107,7 @@ function aiPacket(state,news,mode,symbol){
  const select=mode==="symbol"?r.ranked.filter(x=>x.symbol===symbol):mode==="discover"?r.ranked.slice(0,25):r.ranked.filter(x=>positions.some(p=>p.symbol===x.symbol)).concat(r.ranked.filter(x=>!positions.some(p=>p.symbol===x.symbol)).slice(0,12));
  const rows=select.map(x=>({
   ticker:x.symbol,sector:D.SECTORS[x.symbol]||"未分類",asof:x.asof,adjusted_close:Number(x.price.toFixed(2)),
-  technical_score:x.score,technical_action:x.decision,trend_above_sma200:x.trend,
+  technical_score:x.score,technical_action:x.decision,trend_above_sma200:x.trend,ml_rank:modelOf(state,x.symbol)&&modelOf(state,x.symbol).rank,
   momentum_12_1:Number(x.momentum.toFixed(4)),vol_annual:Number(x.vol.toFixed(4)),recent_drawdown:Number(x.dd.toFixed(4)),
   news:pick(state,news,x.symbol).map(n=>({date:n.published,title:n.title,url:n.url}))
  }));
@@ -119,7 +122,7 @@ function aiPacket(state,news,mode,symbol){
  "本機匯出時間："+new Date().toISOString(),
  "歷史市場快照 JSON（只是研究輸入，不可當作即時價）：",
  JSON.stringify({market:r.env,positions:personal,portfolio_summary:portfolio?{total_usd:portfolio.total,cash_usd:state.cash,max_single_weight:portfolio.concentration,annualized_vol_estimate:portfolio.annVol,high_correlation_pairs:portfolio.clusters}:null,
-  weekly_news_updated_at:news&&news.updated_at,universe:rows},null,2),
+  weekly_news_updated_at:news&&news.updated_at,ml_model_evidence:state.model&&{trained_at:state.model.trained_at,passed_research_gate:state.model.passed_research_gate,holdout_mean_spearman_ic:state.model.holdout_mean_spearman_ic,fixed_factor_baseline_ic:state.model.fixed_factor_baseline_ic},universe:rows},null,2),
  "輸出格式：①結論摘要 ②持倉逐檔操作矩陣 ③新的機會（含非AI板塊）④每個建倉候選基本面/估值證據與反方 ⑤宏觀情境 ⑥數據時效及來源 ⑦本週具體執行清單。資訊並非券商即時資料，請勿自動下單。"
  ].join("\n\n");
 }
