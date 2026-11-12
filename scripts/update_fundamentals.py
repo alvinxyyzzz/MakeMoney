@@ -47,23 +47,19 @@ def main():
  try:previous=json.loads(OUTPUT.read_text(encoding="utf-8"))
  except (OSError,json.JSONDecodeError):pass
  rows={};errors=[];count=0
- for start in range(0,len(symbols),8):
-  batch=symbols[start:start+8]
+ for symbol in symbols:
   try:
-   result=yf.Tickers(" ".join(batch)).get_info(threads=3,progress=False)
-   for t in batch:
-    info=result.get(t) if isinstance(result,dict) else {}
-    if isinstance(info,dict) and any(info.get(k) is not None for k in ("marketCap","forwardPE","totalRevenue")):
-     rows[t]=record(info);count+=1
-    elif t in (previous.get("symbols") or {}):
-     rows[t]=previous["symbols"][t];errors.append(t)
-    else:errors.append(t)
+   info=yf.Ticker(symbol).get_info()
+   if isinstance(info,dict) and any(info.get(k) is not None for k in ("marketCap","forwardPE","totalRevenue")):
+    rows[symbol]=record(info);count+=1
+   elif symbol in (previous.get("symbols") or {}):
+    rows[symbol]=previous["symbols"][symbol];errors.append(symbol)
+   else:errors.append(symbol)
   except Exception as ex:
-   print("[WARN]",batch,repr(ex)[:140],flush=True)
-   for t in batch:
-    if t in (previous.get("symbols") or {}):rows[t]=previous["symbols"][t]
-    errors.append(t)
-  time.sleep(.25)
+   if symbol in (previous.get("symbols") or {}):rows[symbol]=previous["symbols"][symbol]
+   errors.append(symbol)
+   print("[WARN]",symbol,type(ex).__name__,str(ex)[:160],flush=True)
+  time.sleep(.15)
  if not count:
   print("Fundamentals provider unavailable: preserve last good data",flush=True)
   return 0 if previous else 1
