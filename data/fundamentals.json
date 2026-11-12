@@ -1,0 +1,8 @@
+{
+  "updated_at": null,
+  "source": "Yahoo Finance via yfinance get_info, secondary vendor data",
+  "not_audited": true,
+  "not_sec_as_filed": true,
+  "symbols": {},
+  "failed": []
+}
