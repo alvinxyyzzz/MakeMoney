@@ -1,7 +1,18 @@
 {
-  "trained_at": null,
-  "model": "LightGBM regression on Qlib-inspired factors",
+  "trained_at": "2026-11-12T01:25:19+00:00",
+  "model": "LightGBM regression on original Qlib-inspired price factors (not Qlib runtime)",
+  "prediction_horizon_sessions": 21,
+  "benchmark": "SPY adjusted closing prices",
+  "validation_start": "2025-01-01",
+  "holdout_test_points": 20160,
+  "holdout_cross_sections": 445,
+  "holdout_mean_spearman_ic": -0.00366,
+  "fixed_factor_baseline_ic": -0.00054,
   "passed_research_gate": false,
-  "warning": "The model has not been trained and validated yet; do not interpret as active AI predictions.",
-  "symbols": {}
+  "gate": "mean holdout cross-sectional IC > 0.025 and better than baseline",
+  "warning": "Experimental observational OOS rank evidence only. No realistic net-of-cost strategy or 2026 independent blind-test assertion.",
+  "symbols": {},
+  "tested_universe_size": 46,
+  "rows_train": 55888,
+  "no_credential_or_holdings": true
 }
