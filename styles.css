@@ -77,3 +77,22 @@
  .detail-score strong{font-size:32px}
  .sector-strip{grid-template-columns:102px 1fr 28px;gap:8px}
 }
+
+/* V3: local research journal + lean three-tab mobile nav */
+.journal-stack{display:grid;gap:12px}
+.journal-text{white-space:pre-wrap;overflow-wrap:anywhere;max-height:330px;overflow:auto}
+#journal-form{display:grid;gap:11px;margin-top:14px}
+#journal-form label{display:grid;gap:8px}
+textarea{width:100%;resize:vertical;border:1px solid #38505c;border-radius:8px;background:#0d1821;color:var(--ink);font:inherit;padding:12px;line-height:1.6;min-height:110px}
+textarea:focus-visible{outline:2px solid var(--green)}
+#journal-form .button{justify-self:start}
+.weekly-head .subtle{max-width:530px}
+.model-quality{margin:10px 0 16px;display:flex;gap:9px;align-items:center;flex-wrap:wrap;font-size:11px;color:#adbac0}
+.model-quality b{color:#e4c1a5}.model-quality small{color:#8fa7b1}
+@media(max-width:640px){
+ .tabs{grid-template-columns:repeat(3,minmax(0,1fr));padding-left:13px;padding-right:13px}
+ .tabs button{font-size:11px}
+ #journal-form .button{width:100%}
+ .journal-text{max-height:210px}
+ .weekly-cards{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
