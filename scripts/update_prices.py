@@ -24,6 +24,11 @@ SYMBOLS = [
     "NVDA", "GOOGL", "MSFT", "AAPL", "TSLA", "TSM",
     "ADBE", "NOW", "AMZN", "META", "AMD", "CEG",
     "SPY", "VOO", "QQQM", "SCHD", "RSP", "IJR",
+    "AVGO", "MU", "ASML", "AMAT", "LRCX", "ORCL", "CRWV",
+    "VRT", "ETN", "NEE", "COST", "WMT", "PG", "KO", "MCD",
+    "JPM", "V", "MA", "UNH", "LLY", "JNJ", "CAT", "DE", "GE",
+    "O", "PLD", "AMT", "HD", "DIS", "XOM", "CVX", "PANW",
+    "CRWD", "CRM", "GLD",
 ]
 YEARS = os.getenv("MAKEMONEY_HISTORY", "8y")
 MIN_ROWS = 320
