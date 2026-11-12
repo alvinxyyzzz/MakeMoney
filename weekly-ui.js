@@ -11,6 +11,14 @@ const short=v=>Number.isFinite(v)?(v*100).toFixed(0)+"%":"—";
 const dateNow=()=>new Date().toISOString().slice(0,10);
 const pick=(state,news,symbol)=>((news&&news.symbols&&news.symbols[symbol])||[]).slice(0,4);
 const modelOf=(state,symbol)=>state.model&&state.model.passed_research_gate&&state.model.symbols?state.model.symbols[symbol]:null;
+const fundamentalOf=(state,symbol)=>state.fundamentals&&state.fundamentals.symbols?state.fundamentals.symbols[symbol]:null;
+function valuationLabel(f){
+ if(!f||f.coverage<3)return "估值資料不足";
+ if(f.forward_pe>60&&(f.fcf_yield==null||f.fcf_yield<.015))return "估值偏高";
+ if(f.forward_pe>0&&f.forward_pe<28&&f.fcf_yield>=.025&&f.revenue_growth>=.08&&f.operating_margin>=.1)return "估值初篩較合理";
+ if(f.revenue_growth<0)return "營收成長承壓";
+ return "待深入估值核對";
+}
 const labelClass=cls=>({candidate:"signal-green",defensive:"signal-red",stale:"signal-amber",wait:"signal-neutral"}[cls]||"signal-neutral");
 const SECTOR_PRIORITY=["AI 算力","AI 半導體","半導體製造","AI 基礎建設","電力與散熱","電力與核能","大型科技平台","企業軟體","網路安全","必需消費","可選消費","金融","醫療","工業","不動產 REIT","石油能源"];
 function report(state){
@@ -30,7 +38,7 @@ function marketBanner(info,news){
 function opportunityCards(items,state,news,limit){
  return '<div class="weekly-cards">'+items.slice(0,limit||6).map((x,i)=>{
  const headline=pick(state,news,x.symbol)[0];
- return '<button class="weekly-tile" data-open-symbol="'+safe(x.symbol)+'"><div class="tile-top"><span class="tile-ticker">'+safe(x.symbol)+'</span><span class="tile-sector">'+safe(D.SECTORS[x.symbol]||"其他")+'</span></div><div class="tile-value">'+usd(x.price)+'</div><div class="tile-bottom"><span class="score-circle">'+x.score+'<small>/100</small></span><span class="'+labelClass(x.className)+'">'+safe(x.decision)+'</span></div><p>'+safe(x.reason)+'</p><div class="tile-headline">'+(modelOf(state,x.symbol)?'已通過研究門檻的模型分位 '+modelOf(state,x.symbol).rank+'%':'機器學習目前無可用研究訊號')+'</div>'+(headline?'<div class="tile-headline">新聞：'+safe(headline.title)+'</div>':'')+'</button>';
+ return '<button class="weekly-tile" data-open-symbol="'+safe(x.symbol)+'"><div class="tile-top"><span class="tile-ticker">'+safe(x.symbol)+'</span><span class="tile-sector">'+safe(D.SECTORS[x.symbol]||"其他")+'</span></div><div class="tile-value">'+usd(x.price)+'</div><div class="tile-bottom"><span class="score-circle">'+x.score+'<small>/100</small></span><span class="'+labelClass(x.className)+'">'+safe(x.decision)+'</span></div><p>'+safe(x.reason)+'</p><div class="tile-headline">'+(fundamentalOf(state,x.symbol)?'估值：'+valuationLabel(fundamentalOf(state,x.symbol))+' · Forward P/E '+(fundamentalOf(state,x.symbol).forward_pe==null?'—':fundamentalOf(state,x.symbol).forward_pe.toFixed(1))+'；':'估值資料待更新')+'</div><div class="tile-headline">'+(modelOf(state,x.symbol)?'已通過研究門檻的模型分位 '+modelOf(state,x.symbol).rank+'%':'機器學習目前無可用研究訊號')+'</div>'+(headline?'<div class="tile-headline">新聞：'+safe(headline.title)+'</div>':'')+'</button>';
  }).join("")+'</div>';
 }
 function weekly(state,news){
@@ -88,6 +96,12 @@ function detail(state,news,symbol){
  html+='<div class="metric-grid">'+[
   ["相對 SPY 63日",pct(x.relative)],["12−1 動能",pct(x.momentum)],["20日年化波動",pct(x.vol)],["近252日回撤",pct(x.dd)]
  ].map(a=>'<div class="metric"><span>'+a[0]+'</span><strong>'+a[1]+'</strong></div>').join("")+'</div>';
+ var fd=fundamentalOf(state,symbol);
+ html+='<div class="section-head spaced"><div><div class="eyebrow">FUNDAMENTAL CROSS-CHECK</div><h2>估值與營運品質</h2></div><span class="chip">次級資料 · 非 SEC 原始申報</span></div>';
+ if(fd){
+ html+='<div class="metric-grid"><div class="metric"><span>Forward P/E</span><strong>'+(fd.forward_pe==null?'—':fd.forward_pe.toFixed(1)+'×')+'</strong></div><div class="metric"><span>自由現金流收益率</span><strong>'+pct(fd.fcf_yield)+'</strong></div><div class="metric"><span>營收成長率</span><strong>'+pct(fd.revenue_growth)+'</strong></div><div class="metric"><span>營業利益率</span><strong>'+pct(fd.operating_margin)+'</strong></div></div>';
+ html+='<div class="card note"><b>'+valuationLabel(fd)+'</b><p>Yahoo Finance 的估值和營運欄位，可能沒有一致的財報基期；必須以公司法說及 SEC 財報核對。資料抓取時間：'+safe(state.fundamentals.updated_at||"未知")+'。非自動 DCF 或完整基本面分析。</p></div>';
+ }else html+='<div class="card note"><b>基本面資料尚未可用</b><p>請用 AI 深入研究核對最新財報與估值，不要只憑技術評分買入。</p></div>';
  html+='<div class="card note"><b>LightGBM 模型驗證</b><p>'+(modelOf(state,symbol)?'樣本外已通過門檻，模型排名 '+modelOf(state,symbol).rank+' 分位；非勝率、非估值。':'模型未在樣本外明顯勝過簡單基準，暫不將它用作建倉信號。')+'</p></div>';
  html+='<div class="section-head spaced"><div><div class="eyebrow">SIGNAL ANATOMY</div><h2>這個結論的依據</h2></div></div><div class="factor-grid">'+x.factors.map(f=>'<div class="factor"><div class="factor-badge '+(f.points>=f.weight*.65?"pos":f.points<=f.weight*.3?"neg":"neu")+'">'+(f.points===null?"—":Math.round(f.points))+'</div><div><strong>'+safe(f.name)+'</strong><small>'+safe(f.detail)+'</small></div></div>').join("")+'</div>';
  html+='<div class="section-head spaced"><div><div class="eyebrow">SCENARIO MAP</div><h2>執行規劃，不是價格預測</h2></div></div>';
@@ -107,7 +121,7 @@ function aiPacket(state,news,mode,symbol){
  const select=mode==="symbol"?r.ranked.filter(x=>x.symbol===symbol):mode==="discover"?r.ranked.slice(0,25):r.ranked.filter(x=>positions.some(p=>p.symbol===x.symbol)).concat(r.ranked.filter(x=>!positions.some(p=>p.symbol===x.symbol)).slice(0,12));
  const rows=select.map(x=>({
   ticker:x.symbol,sector:D.SECTORS[x.symbol]||"未分類",asof:x.asof,adjusted_close:Number(x.price.toFixed(2)),
-  technical_score:x.score,technical_action:x.decision,trend_above_sma200:x.trend,ml_rank:modelOf(state,x.symbol)&&modelOf(state,x.symbol).rank,
+  technical_score:x.score,technical_action:x.decision,trend_above_sma200:x.trend,ml_rank:modelOf(state,x.symbol)&&modelOf(state,x.symbol).rank,fundamental_snapshot:fundamentalOf(state,x.symbol),
   momentum_12_1:Number(x.momentum.toFixed(4)),vol_annual:Number(x.vol.toFixed(4)),recent_drawdown:Number(x.dd.toFixed(4)),
   news:pick(state,news,x.symbol).map(n=>({date:n.published,title:n.title,url:n.url}))
  }));
@@ -122,7 +136,7 @@ function aiPacket(state,news,mode,symbol){
  "本機匯出時間："+new Date().toISOString(),
  "歷史市場快照 JSON（只是研究輸入，不可當作即時價）：",
  JSON.stringify({market:r.env,positions:personal,portfolio_summary:portfolio?{total_usd:portfolio.total,cash_usd:state.cash,max_single_weight:portfolio.concentration,annualized_vol_estimate:portfolio.annVol,high_correlation_pairs:portfolio.clusters}:null,
-  weekly_news_updated_at:news&&news.updated_at,ml_model_evidence:state.model&&{trained_at:state.model.trained_at,passed_research_gate:state.model.passed_research_gate,holdout_mean_spearman_ic:state.model.holdout_mean_spearman_ic,fixed_factor_baseline_ic:state.model.fixed_factor_baseline_ic},universe:rows},null,2),
+  weekly_news_updated_at:news&&news.updated_at,fundamentals_source:state.fundamentals&&state.fundamentals.source,fundamentals_updated_at:state.fundamentals&&state.fundamentals.updated_at,ml_model_evidence:state.model&&{trained_at:state.model.trained_at,passed_research_gate:state.model.passed_research_gate,holdout_mean_spearman_ic:state.model.holdout_mean_spearman_ic,fixed_factor_baseline_ic:state.model.fixed_factor_baseline_ic},universe:rows},null,2),
  "輸出格式：①結論摘要 ②持倉逐檔操作矩陣 ③新的機會（含非AI板塊）④每個建倉候選基本面/估值證據與反方 ⑤宏觀情境 ⑥數據時效及來源 ⑦本週具體執行清單。資訊並非券商即時資料，請勿自動下單。"
  ].join("\n\n");
 }
