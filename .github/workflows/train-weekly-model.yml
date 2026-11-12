@@ -1,0 +1,46 @@
+name: Train weekly quant ML experiment
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Sunday 11:30 Taiwan time; uses latest available adjusted daily data.
+    - cron: "30 3 * * 0"
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/train-weekly-model.yml"
+      - "scripts/train_model.py"
+      - "requirements-ml.txt"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: weekly-quant-research
+  cancel-in-progress: false
+
+jobs:
+  train:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements-ml.txt
+      - name: Install reproducible research dependencies
+        run: python -m pip install -r requirements-ml.txt
+      - name: Train on past only and validate fixed holdout
+        run: python scripts/train_model.py
+      - name: Check model artifact
+        run: python -m json.tool data/model-signals.json >/dev/null
+      - name: Commit model evidence only
+        run: |
+          if [ -z "$(git status --porcelain -- data/model-signals.json)" ]; then exit 0; fi
+          git config user.name "MakeMoney Research Bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/model-signals.json
+          git commit -m "data: refresh weekly holdout-validated quant experiment"
+          git push
