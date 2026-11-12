@@ -10,6 +10,10 @@ on:
     paths:
       - ".github/workflows/update-market-data.yml"
       - "scripts/update_prices.py"
+      - "scripts/build_snapshot.cjs"
+      - "decision.js"
+      - "engine.js"
+      - "decision-journal.js"
       - "requirements.txt"
       - "tests/engine.test.cjs"
 
@@ -39,7 +43,10 @@ jobs:
       - name: Validate JSON schema and core logic
         run: |
           python -m json.tool data/catalog.json > /dev/null
+          node scripts/build_snapshot.cjs
           node tests/engine.test.cjs
+          node tests/decision.test.cjs
+          node tests/journal.test.cjs
       - name: Commit price cache (no personal holdings)
         run: |
           if [ -z "$(git status --porcelain -- data/)" ]; then
