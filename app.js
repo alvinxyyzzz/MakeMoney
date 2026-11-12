@@ -5,7 +5,7 @@ var Q=window.QuantCore;
 var DEFAULTS=["NVDA","GOOGL","MSFT","AAPL","TSLA","TSM","ADBE","NOW","AMZN","META","AMD","CEG","SPY","VOO","QQQM","SCHD","RSP","IJR"];
 var STORAGE="makemoney-personal-v1", state={
  tab:"weekly",symbol:"NVDA",period:"1Y",strategy:"ensemble",cost:10,
- portfolio:[],custom:{},catalog:null,data:{},loading:{},errors:{},asof:null,news:null,model:null,fundamentals:null,importPreview:null,detailSymbol:null,
+ portfolio:[],custom:{},catalog:null,snapshot:null,data:{},loading:{},errors:{},asof:null,news:null,model:null,fundamentals:null,importPreview:null,detailSymbol:null,
  capital:20000,risk:1,allocation:20,cash:0,ddLimit:40
 };
 var root=document.getElementById("app"),status=document.getElementById("status");
@@ -31,19 +31,29 @@ async function load(t){
  if(state.custom[t]){state.data[t]=Q.normalizeBars(state.custom[t]);return;}
  if(state.data[t]||state.loading[t])return;
  state.loading[t]=true;state.errors[t]=null;
- try{var r=await fetch("./data/"+encodeURIComponent(t)+".json?v="+Date.now(),{cache:"no-store"});if(!r.ok)throw Error("尚無此股票的資料檔");var j=await r.json(),b=Q.normalizeBars(j);if(b.length<2)throw Error("歷史行情不足");state.data[t]=b;}
+ try{var version=encodeURIComponent(state.catalog&&state.catalog.updated_at||"latest");var r=await fetch("./data/"+encodeURIComponent(t)+".json?v="+version,{cache:"default"});if(!r.ok)throw Error("尚無此股票的資料檔");var j=await r.json(),b=Q.normalizeBars(j);if(b.length<2)throw Error("歷史行情不足");state.data[t]=b;}
  catch(e){state.errors[t]=e.message||"資料讀取失敗";}
  finally{delete state.loading[t];if(t===state.symbol||t==="SPY"||state.tab==="portfolio")render();}
 }
 async function init(){
  restore();
- try{var r=await fetch("./data/catalog.json?v="+Date.now(),{cache:"no-store"});if(r.ok)state.catalog=await r.json();}catch(e){}
- try{var n=await fetch("./data/weekly-news.json?v="+Date.now(),{cache:"no-store"});if(n.ok)state.news=await n.json();}catch(e){}
- try{var ml=await fetch("./data/model-signals.json?v="+Date.now(),{cache:"no-store"});if(ml.ok)state.model=await ml.json();}catch(e){}
- try{var fnd=await fetch("./data/fundamentals.json?v="+Date.now(),{cache:"no-store"});if(fnd.ok)state.fundamentals=await fnd.json();}catch(e){}
+ try{
+  var lookups=[
+   ["snapshot","./data/weekly-signals.json"],
+   ["catalog","./data/catalog.json"],
+   ["news","./data/weekly-news.json"],
+   ["model","./data/model-signals.json"],
+   ["fundamentals","./data/fundamentals.json"]
+  ];
+  await Promise.all(lookups.map(async function(x){
+   try{var r=await fetch(x[1],{cache:"no-store"});if(r.ok)state[x[0]]=await r.json();}
+   catch(e){state.errors[x[0]]="更新失敗";}
+  }));
+ }catch(e){}
  render();
- var all=Object.keys(state.catalog&&state.catalog.symbols||{});
- await Promise.all(Array.from(new Set([state.symbol,"SPY"].concat(state.portfolio.map(function(p){return p.symbol;})).concat(all))).map(load));
+ // Lazy market-data loading: fetch only selected ticker, SPY benchmark and actual positions.
+ var tickers=Array.from(new Set([state.symbol,"SPY"].concat(state.portfolio.map(function(p){return p.symbol;}))));
+ await Promise.all(tickers.map(load));
  render();
 }
 function icon(name){
@@ -139,6 +149,18 @@ function backtestPage(){
  html+='<div class="card note"><b>怎麼讀這個回測？</b><p>所有模型使用固定參數，指標在當日收盤後計算、下一交易日收盤才視為執行，避免使用尚未出現的價格。成本按照換倉比例計算；未納入真實買賣價差、稅負、融資、借券、滑價、個別除權日差異。此處最後25%是時間切分對照，不是經過完全封存的獨立盲測，歷史好績效不代表未來收益。</p></div>';
  return html;
 }
+function journalPage(){
+ var db=DecisionJournal.read();
+ var hist=db.history.slice().reverse(),reports=db.reports.slice().reverse(),actions=db.actions.slice().reverse();
+ var html='<div class="section-head"><div><div class="eyebrow">PRIVATE RESEARCH MEMORY / DEVICE ONLY</div><h2>我的投資研究紀錄</h2></div><button class="button ghost" data-tab="weekly">← 回到本週</button></div>';
+ html+='<div class="card note"><b>保存你的分析，不要每週花 Token 重頭研究</b><p>每次從 ChatGPT 取得結論後，貼一段可重用的摘要。你的持倉、研究筆記與操作紀錄只存在本機，請定期在「我的持倉」匯出備份。</p><form id="journal-form"><label>貼入本週 AI 研究摘要<textarea name="report" rows="5" placeholder="例如：GOOGL｜持有｜主要論點｜本週重大變化｜反證與失效條件" required></textarea></label><button class="button primary" type="submit">保存本週研究結論</button></form></div>';
+ html+='<div class="section-head spaced"><div><div class="eyebrow">KEEP THE DECISION HISTORY</div><h2>記錄實際操作</h2></div></div>';
+ html+='<div class="card add-card"><form id="action-form" class="holding-form"><label>股票<input name="symbol" maxlength="12" placeholder="GOOGL" required></label><label>操作<select name="action"><option>買入</option><option>加碼</option><option>減碼</option><option>賣出</option><option selected>持有觀察</option></select></label><label>決策備註<input name="note" placeholder="原因與價位"></label><button class="button primary" type="submit">記錄</button></form></div>';
+ if(reports.length)html+='<div class="section-head spaced"><div><div class="eyebrow">AI RESEARCH ARCHIVE</div><h2>已保存的研究</h2></div></div><div class="journal-stack">'+reports.slice(0,8).map(function(x){return '<div class="card note"><div class="eyebrow">'+esc(x.week)+'</div><p class="journal-text">'+esc(x.text)+'</p></div>';}).join("")+'</div>';
+ if(actions.length)html+='<div class="section-head spaced"><div><div class="eyebrow">EXECUTION LOG</div><h2>操作紀錄</h2></div></div><div class="decision-list">'+actions.slice(0,12).map(function(x){return '<div class="decision-item"><div class="decision-symbol"><b>'+esc(x.symbol)+'</b><small>'+esc(x.week)+'</small></div><div class="decision-explain"><b>'+esc(x.action)+'</b><small>'+esc(x.note)+'</small></div></div>';}).join("")+'</div>';
+ if(hist.length)html+='<div class="section-head spaced"><div><div class="eyebrow">DELTA MEMORY</div><h2>每週快照</h2></div></div><div class="decision-list">'+hist.slice(0,12).map(function(x){return '<div class="decision-item"><div class="decision-symbol"><b>'+esc(x.week)+'</b></div><div class="decision-explain"><b>'+x.holdings.length+' 檔持倉</b><small>已定價部位 + 現金：'+usd(x.pricedValue)+'；未定價：'+x.unpriced.length+' 檔</small></div></div>';}).join("")+'</div>';
+ return html;
+}
 function portfolioPage(){
  var P=state.portfolio,capital=0,value=0,known=0,list=P.map(function(x){
    var b=bars(x.symbol),last=b&&b.length?b[b.length-1]:null,current=last?last.c:NaN,shares=+x.shares,cost=+x.cost,invested=shares*cost,mv=Number.isFinite(current)?shares*current:null;
@@ -175,26 +197,27 @@ function render(){
  state.tab==="weekly"?WeeklyUI.weekly(state,state.news):
  state.tab==="discover"?WeeklyUI.discover(state,state.news):
  state.tab==="portfolio"?portfolioPage():
+ state.tab==="journal"?journalPage():
  state.tab==="research"?research()+'<div class="row-actions"><button class="button ghost" data-tab="method">查看模型研究來源 ↗</button></div>':
  state.tab==="backtest"?backtestPage():methodPage();
  root.innerHTML=top()+notice()+tabs()+'<main class="page">'+content+'</main><footer>MAKEMONEY / WEEKLY DECISION TERMINAL <span>·</span> NO BROKER CONNECTION <span>·</span> NOT FINANCIAL ADVICE</footer>';
 }
 function selectSymbol(t){if(!safeSymbol(t))return;state.symbol=t;persist();render();load(t);}
 async function sendAIPacket(mode,symbol){
- var packet=WeeklyUI.aiPacket(state,state.news,mode,symbol),copied=false;
+ var packet=state.snapshot&&state.snapshot.ranked&&state.snapshot.ranked.length?DecisionJournal.minimalPacket(state,state.news,mode,symbol):WeeklyUI.aiPacket(state,state.news,mode,symbol),copied=false;
  try{if(navigator.clipboard&&navigator.clipboard.writeText){await navigator.clipboard.writeText(packet);copied=true;}}catch(e){}
  if(!copied){
   try{var el=document.createElement("textarea");el.value=packet;el.style.position="fixed";el.style.opacity="0";document.body.appendChild(el);el.select();copied=document.execCommand("copy");el.remove();}catch(e){}
  }
  if(copied){
   toast("AI 研究指令已複製，請貼到 ChatGPT 對話。");
-  if(typeof window.open==="function")window.open("https://chatgpt.com/","_blank","noopener,noreferrer");
+  // Avoid browser popup blockers after an async clipboard permission prompt.
  }else{
   try{var blob=new Blob([packet],{type:"text/plain;charset=utf-8"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="MakeMoney-AI-analysis-"+todayUTC()+".txt";document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(url);},3000);toast("已輸出 AI 研究 TXT，請貼到 ChatGPT。");}catch(e){toast("複製失敗，請在 HTTPS 開啟網站。",true);}
  }
 }
 function downloadJSON(){
- var body={format:"MakeMoney-backup-v1",exported_at:new Date().toISOString(),portfolio:state.portfolio,custom:state.custom,settings:{symbol:state.symbol,cost:state.cost,capital:state.capital,risk:state.risk,allocation:state.allocation,cash:state.cash,ddLimit:state.ddLimit}};
+ var body={format:"MakeMoney-backup-v1",exported_at:new Date().toISOString(),portfolio:state.portfolio,custom:state.custom,journal:DecisionJournal.read(),settings:{symbol:state.symbol,cost:state.cost,capital:state.capital,risk:state.risk,allocation:state.allocation,cash:state.cash,ddLimit:state.ddLimit}};
  var blob=new Blob([JSON.stringify(body,null,2)],{type:"application/json"}),url=URL.createObjectURL(blob),a=document.createElement("a");
  a.href=url;a.download="MakeMoney-private-backup-"+todayUTC()+".json";document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(url);},1000);
  toast("私人備份已開始下載，請妥善保存。");
@@ -238,12 +261,23 @@ document.addEventListener("change",async function(e){
      state.portfolio=j.portfolio.filter(function(x){return x&&safeSymbol(x.symbol)&&+x.shares>0&&+x.cost>0;}).slice(0,100);
      state.custom={};Object.keys(j.custom||{}).forEach(function(s){if(safeSymbol(s)){var a=Q.normalizeBars(j.custom[s]);if(a.length>1)state.custom[s]=a.map(function(x){return [x.d,x.o,x.h,x.l,x.c,x.v];});}});
      if(j.settings){["cost","capital","risk","allocation","cash","ddLimit"].forEach(function(k){if(Number.isFinite(+j.settings[k])&&+j.settings[k]>=0)state[k]=+j.settings[k];});}
-     state.data={};persist();render();toast("私人備份匯入成功。");await load(state.symbol);}
+     if(j.journal&&Array.isArray(j.journal.history)&&Array.isArray(j.journal.reports)&&Array.isArray(j.journal.actions))DecisionJournal.write(j.journal);
+     state.data={};persist();render();toast("私人備份匯入成功。");await Promise.all(Array.from(new Set([state.symbol,"SPY"].concat(state.portfolio.map(function(p){return p.symbol;})))).map(load));}
    catch(err){toast("備份匯入失敗："+err.message,true);}
  }
 });
 document.addEventListener("submit",function(e){
  var form=e.target;e.preventDefault();
+ if(form.id==="journal-form"){
+  try{DecisionJournal.addReport(String(new FormData(form).get("report")||""),DecisionJournal.isoWeek(),"weekly");render();toast("已儲存研究摘要；下次 AI 會優先參考它。");}
+  catch(err){toast(err.message,true);}
+  return;
+ }
+ if(form.id==="action-form"){
+  try{var ff=new FormData(form);DecisionJournal.addAction(String(ff.get("symbol")||"").trim().toUpperCase(),ff.get("action"),ff.get("note"));render();toast("已保存本次決策。");}
+  catch(err){toast(err.message,true);}
+  return;
+ }
  if(form.id==="holding-form"){
   var d=new FormData(form),sym=String(d.get("symbol")||"").trim().toUpperCase(),shares=+d.get("shares"),cost=+d.get("cost");
   if(!safeSymbol(sym)||!Number.isFinite(shares)||shares<=0||!Number.isFinite(cost)||cost<=0){toast("請輸入有效的美股代號、股數和成本。",true);return;}
