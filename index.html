@@ -7,19 +7,22 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="MakeMoney">
-  <meta name="description" content="MakeMoney — private, evidence-first US equities research and backtesting terminal.">
-  <title>MakeMoney — Quant Research</title>
+  <meta name="description" content="MakeMoney — personal weekly US equity investing cockpit, holdings review and market opportunity radar.">
+  <title>MakeMoney — Weekly Investment Research</title>
   <link rel="icon" type="image/svg+xml" href="./icons/icon.svg">
   <link rel="apple-touch-icon" sizes="180x180" href="./icons/icon-180.png">
   <link rel="manifest" href="./manifest.webmanifest">
-  <link rel="stylesheet" href="./styles.css?v=1">
+  <link rel="stylesheet" href="./styles.css?v=2">
 </head>
 <body>
   <div id="app"><div class="startup"><span class="startup-mark">M<span>.</span></span><p>MakeMoney / Loading research terminal…</p></div></div>
   <div id="status" role="status" aria-live="polite" class="toast" hidden></div>
   <noscript>請開啟 JavaScript 才能使用 MakeMoney。</noscript>
   <script src="./engine.js?v=1"></script>
-  <script src="./app.js?v=1"></script>
+  <script src="./decision.js?v=2"></script>
+  <script src="./holdings-import.js?v=2"></script>
+  <script src="./weekly-ui.js?v=2"></script>
+  <script src="./app.js?v=2"></script>
   <script>
     if ("serviceWorker" in navigator) {
       window.addEventListener("load", function() {
