@@ -1,0 +1,41 @@
+name: Update weekly investment news
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Sunday at 09:30 Taiwan time, allowing review before US Monday session.
+    - cron: "30 1 * * 0"
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/update-weekly-news.yml"
+      - "scripts/update_news.py"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: weekly-news-refresh
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Collect public dated news links
+        run: python scripts/update_news.py
+      - name: Check news JSON
+        run: python -m json.tool data/weekly-news.json >/dev/null
+      - name: Publish news index
+        run: |
+          if [ -z "$(git status --porcelain -- data/weekly-news.json)" ]; then exit 0; fi
+          git config user.name "MakeMoney News Bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/weekly-news.json
+          git commit -m "data: refresh weekly news references"
+          git push
