@@ -9,6 +9,11 @@ on:
       - "styles.css"
       - "app.js"
       - "decision.js"
+      - "decision-journal.js"
+      - "public-bridge.js"
+      - "scripts/build_snapshot.cjs"
+      - "tests/journal.test.cjs"
+      - "tests/bridge.test.cjs"
       - "weekly-ui.js"
       - "holdings-import.js"
       - "engine.js"
@@ -44,13 +49,17 @@ jobs:
         run: |
           node tests/engine.test.cjs
           node tests/decision.test.cjs
+          node tests/journal.test.cjs
+          node tests/bridge.test.cjs
+          node scripts/build_snapshot.cjs
+          test -s data/weekly-signals.json
           python -m json.tool data/catalog.json >/dev/null
           test -s index.html
           test -s data/NVDA.json
       - name: Create publish directory with only static app assets
         run: |
           mkdir -p site/data site/icons
-          cp index.html styles.css app.js engine.js decision.js weekly-ui.js holdings-import.js sw.js manifest.webmanifest site/
+          cp index.html styles.css app.js engine.js decision.js weekly-ui.js holdings-import.js decision-journal.js public-bridge.js sw.js manifest.webmanifest site/
           cp icons/icon.svg icons/icon-180.png site/icons/
           cp data/*.json site/data/
           touch site/.nojekyll
