@@ -35,6 +35,7 @@
 | --- | --- | --- | --- |
 | End-of-day US market data | Tuesday–Saturday at 11:20 | **0** | GitHub Actions + yfinance, adjusted OHLC, non-real-time |
 | Weekly dated RSS headlines | Sunday at 09:30 | **0** | GitHub Actions public RSS retrieval; linked titles, not AI news synthesis |
+| Weekly fundamental snapshots | Sunday at 10:45 | **0** | Yahoo Finance secondary-source P/E, FCF yield, revenue growth and margins; partial coverage possible |
 | LightGBM cross-sectional research | Sunday at 11:30 | **0 ChatGPT tokens** | GitHub Actions training/validation using public historical OHLC, not ChatGPT |
 | Portfolio analysis dashboard | Whenever you open the website | **0** | Runs on your device, localStorage |
 | Deep fundamental/market AI research | When you request it in ChatGPT | **Uses your ChatGPT model usage** | User-initiated, verified current research, not automatic website inference |
@@ -73,7 +74,7 @@ The project has separate weekly-price, RSS and ML workflows. Each writes only pu
 
 ### Caveats and planned improvements
 
-- Fundamental valuations and source-verified earnings commentary currently require ChatGPT research; no fundamentals database or automated fully reasoned weekly AI reports are claimed.
+- Secondary-source P/E, FCF yield, revenue growth and margins are refreshed weekly where accessible, but these fields may have non-matching fiscal periods and are not SEC-filed facts; audited earnings commentary, deeper valuation and DCF still require source-verified ChatGPT research. There is no automatically reasoned weekly AI report inside the static website.
 - Some CSV exports may use different names, field formats or options; import has an explicit preview and skip notice.
 - Technical adjusted prices should not be read as current broker-executable bid/ask. For trading, check the live quotation in Firstrade.
 - Default technical portfolio warnings use a simple 20% single-stock threshold. The user's stated approximate 40% tolerance is a **risk boundary**, not a promise that stops can keep losses below it.
