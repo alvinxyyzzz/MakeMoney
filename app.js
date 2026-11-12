@@ -5,7 +5,7 @@ var Q=window.QuantCore;
 var DEFAULTS=["NVDA","GOOGL","MSFT","AAPL","TSLA","TSM","ADBE","NOW","AMZN","META","AMD","CEG","SPY","VOO","QQQM","SCHD","RSP","IJR"];
 var STORAGE="makemoney-personal-v1", state={
  tab:"weekly",symbol:"NVDA",period:"1Y",strategy:"ensemble",cost:10,
- portfolio:[],custom:{},catalog:null,data:{},loading:{},errors:{},asof:null,news:null,importPreview:null,detailSymbol:null,
+ portfolio:[],custom:{},catalog:null,data:{},loading:{},errors:{},asof:null,news:null,model:null,importPreview:null,detailSymbol:null,
  capital:20000,risk:1,allocation:20,cash:0,ddLimit:40
 };
 var root=document.getElementById("app"),status=document.getElementById("status");
@@ -39,6 +39,7 @@ async function init(){
  restore();
  try{var r=await fetch("./data/catalog.json?v="+Date.now(),{cache:"no-store"});if(r.ok)state.catalog=await r.json();}catch(e){}
  try{var n=await fetch("./data/weekly-news.json?v="+Date.now(),{cache:"no-store"});if(n.ok)state.news=await n.json();}catch(e){}
+ try{var ml=await fetch("./data/model-signals.json?v="+Date.now(),{cache:"no-store"});if(ml.ok)state.model=await ml.json();}catch(e){}
  render();
  var all=Object.keys(state.catalog&&state.catalog.symbols||{});
  await Promise.all(Array.from(new Set([state.symbol,"SPY"].concat(state.portfolio.map(function(p){return p.symbol;})).concat(all))).map(load));
