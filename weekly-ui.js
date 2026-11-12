@@ -84,7 +84,7 @@ function weekly(state,news){
  }
  html+='<div class="section-head spaced"><div><div class="eyebrow">02 / CURRENT OPPORTUNITIES</div><h2>本週觀察名單</h2></div><button class="button ghost" data-tab="discover">全部市場機會 ↗</button></div>';
  html+='<p class="smallmuted">多因子技術評分，不是 AI 預測或已確認估值便宜。必須核對財報與消息才能判斷「現在是否值得買」。</p>';
- html+=opportunityCards(candidates,state,news,6);
+ html+=opportunityCards(candidates,state,news,3);
  html+='<div class="section-head spaced"><div><div class="eyebrow">03 / RESEARCH EVIDENCE</div><h2>新聞與資料品質</h2></div><span class="chip">'+safe(news&&news.updated_at?news.updated_at.slice(0,10):"新聞尚未更新")+'</span></div>';
  html+='<div class="card note"><p>每週 RSS 只整理標題、日期與連結，不自動判斷新聞真假或利多利空。新聞沒列到，也不代表該公司沒有重大消息。請點進原文核對。</p>'+symbolNews(news,holdingNames.values().next().value||state.symbol)+'</div>';
  html+='<div class="card note"><b>要完整 AI 投資委員會分析？</b><p>點「用 AI 深入分析」，會產生包含私人持倉、量化訊號、資料日期及新聞連結的研究指令，由你親自貼到 ChatGPT 使用。這樣不需要將私人持倉或 API Key 傳到 GitHub Pages。</p></div>';
@@ -101,6 +101,7 @@ function discover(state,news){
  +'<div class="sector-strips">'+sectors.map(s=>'<div class="sector-strip"><div><b>'+safe(s.sector)+'</b><small>'+s.items.length+' 檔樣本</small></div><div class="sector-bar"><span style="width:'+s.score+'%"></span></div><strong>'+s.score+'</strong></div>').join("")+'</div>'
  +'<div class="section-head spaced"><div><div class="eyebrow">QUANT FILTER</div><h2>候選標的排名</h2></div><span class="chip">'+candidates.length+' 檔已分析</span></div>'
  +opportunityCards(candidates,state,news,candidates.length)
+ +'<div class="card note"><b>進階研究工具</b><p>歷史價格與量化回測不放在主選單，有需要時再使用。</p><div class="row-actions"><button class="button ghost" data-tab="research">個股技術圖表</button><button class="button ghost" data-tab="backtest">策略回測</button><button class="button ghost" data-tab="method">模型研究來源</button></div></div>'
  +'<div class="card note"><b>注意生存者偏差</b><p>監控清單是事前選定的有限標的，不能把排名當作全市場的統計顯著優勢。新聞週報與股價更新時點不同。</p></div>';
 }
 function detail(state,news,symbol){
@@ -108,7 +109,7 @@ function detail(state,news,symbol){
  const x=D.assess(symbol,bars,spy,dateNow());
  if(!x)return '<div class="card note"><b>'+safe(symbol)+' 尚未有足夠行情</b></div>';
  const h=(state.portfolio||[]).find(p=>p.symbol===symbol),v=h?h.shares*x.price:null;
- const action=h?D.actionForHolding(symbol,x,D.portfolio(state.portfolio,state.data,spy,state.cash)?.list.find(z=>z.symbol===symbol)?.weight||0,.20):null;
+ const action=h?D.actionForHolding(symbol,x,D.portfolio(state.portfolio,state.data,spy,state.cash)?.list.find(z=>z.symbol===symbol)?.weight??null,.20):null;
  let html='<div class="detail-head"><button class="button ghost" data-return="1">← 返回</button><div><div class="eyebrow">'+safe(D.SECTORS[symbol]||"市場觀察")+'</div><h2>'+safe(symbol)+' · 投資決策卡</h2></div><button class="button primary" data-ai-symbol="'+safe(symbol)+'">✦ AI 深入研究</button></div>';
  html+='<div class="hero"><div><div class="eyebrow">調整後收盤 / '+safe(x.asof)+'</div><div class="price">'+usd(x.price)+'</div><p class="'+labelClass(x.className)+'">'+safe(action?action.label:x.decision)+'</p><p class="smallmuted">'+safe(action?action.why:x.reason)+'</p></div><div class="detail-score"><small>多因子評分</small><strong>'+x.score+'<span>/ 100</span></strong><small>非預測成功率</small></div></div>';
  html+='<div class="metric-grid">'+[
@@ -130,6 +131,7 @@ function detail(state,news,symbol){
  ].map(a=>'<div class="level"><span>'+a[0]+'</span><strong>'+a[1]+'</strong></div>').join("")+'</div>';
  }else html+='<div class="card warning-card"><h3>未形成多頭趨勢，拒絕給出無根據的「便宜買點」</h3><p>如果趨勢改善，先觀察 '+usd(lv&&lv.recovery)+' 周邊，再看財報、估值與宏觀風險。</p></div>';
  if(h)html+='<div class="card note"><b>你的持倉</b><p>'+h.shares+' 股 · 成本 '+usd(h.cost)+' · 最新調整後價格估算市值 '+usd(v)+' · 未實現價差 '+pct(x.price/h.cost-1)+'</p></div>';
+ html+='<div class="row-actions"><button class="button ghost" data-tab="research">查看技術圖表</button><button class="button ghost" data-tab="backtest">查看回測</button></div>';
  html+='<div class="section-head spaced"><div><div class="eyebrow">SOURCE REVIEW</div><h2>本週相關報導</h2></div></div><div class="card">'+symbolNews(news,symbol)+'</div>';
  html+='<div class="card note"><b>重要缺口</b><p>目前沒有正式授權的即時成交價、完整分析師預測、最新法說逐字稿或經過驗證的 DCF 估值。AI 深度研究應優先補足這些證據，而不是把 '+x.score+' 分當成公司內在價值。</p></div>';
  return html;
