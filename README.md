@@ -1,89 +1,81 @@
-# MakeMoney
+# MakeMoney · Weekly Investment Decision Cockpit
 
-**Private research terminal for US equities.** A mobile-first, static PWA with explainable signals, conservative daily-bar backtests, technical scenario price bands, risk sizing and local-only holdings.
+**Current release: MVP v2 — 12 November 2026.** A mobile-first, static investment decision workspace, focused on **what to do with your Firstrade US stocks this week** and **which sectors or candidates deserve immediate deeper research**.
 
-This is **not** a brokerage app, live quote feed, certified investment advice, trained AI prediction model or automatic money maker.
+- [Open the deployed app](https://alvinxyyzzz.github.io/MakeMoney/)
+- [Inspect GitHub Actions](https://github.com/alvinxyyzzz/MakeMoney/actions)
+- [Model selection & validation protocol](docs/research-design.md)
 
-## Status — Version 1 (2026-11-11)
+### What you can actually use now
 
-Implemented:
-- Historical adjusted daily OHLC chart, SMA50/200, RSI14, ATR14, annualized 20-day volatility, 12-1 momentum.
-- Long-only SMA trend, 12-1 momentum, trend-filtered RSI mean reversion, 20-day breakout, 18%-volatility target, four-factor ensemble, and buy-and-hold benchmark.
-- Transparent ATR-based pullback/add/technical invalidation/profit **scenario** price ranges, not guaranteed fills.
-- Backtesting with one-session signal execution lag, configurable proportional trading costs, CAGR, drawdown, volatility, Sharpe, chronological final 25% comparison.
-- Risk budget calculator, local-only holdings and cash, JSON backups, historical CSV import.
-- iPhone-friendly PWA, manifest and home screen icon, scheduled GitHub market-data updater.
+| Screen | Function |
+| --- | --- |
+| 本週決策 | Market regime, your holdings' conditional actions, concentration/correlation warnings, and technical candidates |
+| 我的持倉 | Import Firstrade position CSV **locally**, preview, confirm, edit, save browser-only and back up to JSON |
+| 發掘機會 | Scan **53** predefined US equities and ETFs across AI chips, power, industrials, financials, healthcare, real estate, consumer and software |
+| 個股研究 | Adjusted daily prices, moving averages, factor decomposition, ATR scenario zones, risk position sizing |
+| 策略實驗 | 7 deterministic long-only strategies, costs and chronological out-of-sample-period display (not a true blind test) |
+| Individual stock card | Quant score, conditional action, current EOD context, factors, research gaps and timestamped news links |
+| ✦ AI 深入分析 | **Copies an evidence packet for manual paste into ChatGPT**, no API key or automatic AI calls |
 
-Not implemented: trained Qlib/LightGBM, actual LEAN or vectorbt runtimes, PyPortfolioOpt solver, point-in-time fundamentals, licensed commercial quotes, audited live execution, Firstrade integration.
+**Important distinction:** The weekly screen automatically gives **rules-based conditional actions**, not a complete AI fundamental recommendation. The ChatGPT button enables an actual deep research conversation after you intentionally paste the packet; it does not run ChatGPT models inside the website or quietly send sensitive holdings to a backend.
 
-## First-time market data
+### First-time weekly workflow
 
-1. Open repository **Actions** → **Update market data** → **Run workflow**.
-2. Let the workflow finish. It fetches personal-research historical adjusted **daily** OHLC using yfinance, then commits only data JSON files to the repository.
-3. Review **data/catalog.json** for last trading date, bar count and status per symbol.
-4. Updates are scheduled for **Tuesday–Saturday 11:20 Taiwan time** (03:20 UTC), after the previous US session. GitHub scheduled jobs can be delayed; weekends, holidays and provider outages can result in stale data.
+1. Open **我的持倉** and import a Firstrade CSV with columns such as \`Symbol,Quantity,Average Cost\`. Some statements contain extra lines and headers; the parser searches for compatible holdings columns, groups duplicate tickers and records skipped rows. Always inspect the preview before confirming. If you have no CSV, use the manual holdings entry fields.
+2. The holdings, cash and imported price files are saved in the browser only, not in this public GitHub repository. On iPhone, add the site to the Home Screen via Safari's Share menu.
+3. Check **本週決策** for your holdings' portfolio-weight warning and current technical action. Tap any symbol for the decision card.
+4. Open **發掘機會** to compare sectors, including non-AI names. A "current candidate" means **technical setup eligible for fundamental review**, not that a DCF or earnings report has proven it undervalued.
+5. For a full AI committee review, tap **✦ AI 深入分析**. The app prepares a locally assembled prompt with your entered holdings, date-stamped price factors and available headline URLs. It copies it to clipboard (or downloads TXT if copying fails). **You choose whether to paste this private packet into ChatGPT.**
+6. Export the holdings backup JSON regularly, especially before clearing Safari storage or reinstalling a PWA. The exported file contains personal financial information.
 
-The repository starts with **no fabricated example prices**. Until the first successful refresh, run Actions or import historical CSV. If the provider is unavailable, existing data are retained where possible.
+### Data & automatic update schedule (Taiwan time)
 
-Source: [yfinance](https://github.com/ranaroussi/yfinance). Yahoo Finance API market data are intended for **personal use and research/education**. Check data rights and provider terms before publishing, redistributing, selling or commercializing a website containing these files.
+| Update | Schedule | ChatGPT tokens | Type |
+| --- | --- | --- | --- |
+| End-of-day US market data | Tuesday–Saturday at 11:20 | **0** | GitHub Actions + yfinance, adjusted OHLC, non-real-time |
+| Weekly dated RSS headlines | Sunday at 09:30 | **0** | GitHub Actions public RSS retrieval; linked titles, not AI news synthesis |
+| LightGBM cross-sectional research | Sunday at 11:30 | **0 ChatGPT tokens** | GitHub Actions training/validation using public historical OHLC, not ChatGPT |
+| Portfolio analysis dashboard | Whenever you open the website | **0** | Runs on your device, localStorage |
+| Deep fundamental/market AI research | When you request it in ChatGPT | **Uses your ChatGPT model usage** | User-initiated, verified current research, not automatic website inference |
 
-## Launch iPhone web app
+GitHub Actions has its own runner usage and restrictions; "zero ChatGPT tokens" does not imply zero hosting, finance-feed or provider cost. Actual GitHub schedules may be delayed, especially during service issues. US market holidays do not produce new sessions.
 
-This repository is **private**. GitHub Pages on GitHub Free is generally limited to public repositories; Pages from a private repository is available to eligible paid GitHub plans such as GitHub Pro. Even when the source repository is private, **the deployed Pages website and data should not be assumed private**.
+**Real-time quotes are deliberately excluded from MVP.** A weekly investment process does not need millisecond or intraday ticks. Adding licensed market-data feeds, quote redistribution rights, keys, and broker-like availability would increase costs and operational complexity. EOD updated once per US trading day is more proportionate to weekly reviews; the app labels its data date and will not claim live prices.
 
-1. In GitHub open **Settings → Pages → Build and deployment → Source → GitHub Actions**. This one-time Pages enablement must be completed by the repository owner (the existing GitHub connection cannot change that setting). The publishing workflow is already committed at `.github/workflows/publish-pages.yml`.
-2. After enabling Pages, open **Actions → Publish MakeMoney to GitHub Pages → Run workflow**. Confirm the workflow succeeds and then visit https://alvinxyyzzz.github.io/MakeMoney/ . **The URL does not work before the first successful Pages deployment.** Future pushes of market-data JSON also trigger this publishing workflow.
-3. On iPhone Safari open the verified site → Share → **Add to Home Screen**. The iOS icon should come from icons/icon-180.png; after replacing a cached icon, remove and re-add the home screen shortcut.
-4. If you need private access and do not have a compatible plan, use a trusted private host or a local server. Do not make the repo public merely for convenience without checking data rights and access controls.
+### Research and actual machine learning
 
-No sensitive portfolio information is preloaded into the repository.
+**Deterministic baseline:** The browser runs custom original JavaScript implementations of 7 quant strategies, long-term trend, 12–1 momentum, RSI and 20-day breakout. A separate Decision Lab ranks 53 current watchlist names on SMA200, MA alignment, 12–1 momentum, relative SPY performance, volatility/drawdown and RSI. The output is a **heuristic score, not success probability**.
 
-## Manual CSV import
+**Experimental trained LightGBM:** GitHub Actions trains a cross-sectional regression model on daily point-in-time-like price factors, targeting next-21-session **excess return versus SPY** with chronological holdout beginning 2025-01-01. It never uses today's unobserved label to train. See [scripts/train_model.py](scripts/train_model.py), [data/model-signals.json](data/model-signals.json) and its public training logs. The baseline and validation metrics are available in the artifact. The model's ranking is **hidden unless its holdout mean Spearman IC exceeds 0.025 and surpasses a fixed simple-factor baseline**.
 
-Import one symbol at a time from the Research tab. Accepts header fields Date, Open, High, Low, Close, Adj Close, Volume; Date and Close are required. The parser adjusts OHLC by the ratio Adj Close / Close when the adjusted field is supplied. Historical files should contain at least **255 rows** for indicators and **320 rows** for backtesting. An unadjusted CSV can distort returns and signals.
+Initial real experiment (2026-11-12): holdout IC about **−0.0037**, failing the gate. This is a valuable negative result; the app will **not** present model-generated buys just because a machine-learning library exists. No automated optimized-alpha or live trading claim is made. The current 53-name universe has survivorship and selection bias and is not sufficient to establish investable net-of-cost outperformance.
 
-CSV remains in your browser's local storage; it can be included in the private JSON backup exported from the holdings screen.
-
-## Backtest methodology
-
-- Signals only access data through close **t−2**. Trade is approximated at the **next** session close t−1 and earns return t−1 to t. This one-day delay avoids inadvertently using price t to trade before it exists.
-- Daily, long-only position 0–100%, no leverage or shorting. A simplified assumption of full participation at next close is not the same as real broker execution.
-- Returns use adjusted prices; dividends are not separately added. This is an approximation, not a broker-exact return series.
-- Default fee is 10 basis points per unit of capital traded, adjustable. No bid-ask spread, market impact, taxes, borrowing cost, fill constraints or currency effects yet.
-- Warm-up is 254 daily bars for all strategies. Final 25% results are a chronological comparison, **not** a truly untouched test, nested walk-forward validation or overfitting-proof performance.
-- Benchmark is **buy-and-hold of the selected stock over identical dates** (not automatically SPY or VOO).
-- Sharpe assumes 0 risk-free rate and 252 sessions/year. No point-in-time historical universe or survivorship-bias adjustments.
-
-Run local regression tests with: **node tests/engine.test.cjs**.
-
-Detailed architecture and model validation plan: [docs/research-design.md](docs/research-design.md).
-
-## Open-source research foundation
-
-| Project | Role / planned work | V1 actual runtime |
+| Source framework | What is actually adopted | What is not falsely claimed |
 | --- | --- | --- |
-| [Microsoft Qlib](https://github.com/microsoft/qlib) | Alpha158, LightGBM and ML experiment design | Not trained or deployed |
-| [vectorbt](https://github.com/polakowo/vectorbt) | Vectorized backtesting, cost and sensitivity methodology | Not installed; original JS backtester |
-| [QuantConnect LEAN](https://github.com/QuantConnect/Lean) | Event-driven simulation / execution | Not integrated |
-| [PyPortfolioOpt](https://github.com/PyPortfolio/PyPortfolioOpt) | Portfolio risk and allocation optimization | Not integrated |
-| [Machine Learning for Trading](https://github.com/stefan-jansen/machine-learning-for-trading) | Leakage, walk-forward validation, overfit defenses | Methodology reference |
+| [Microsoft Qlib](https://github.com/microsoft/qlib) | Alpha158-inspired factor families and disciplined train/test protocol | No direct Qlib runtime, weights or imported benchmark returns |
+| [vectorbt](https://github.com/polakowo/vectorbt) | Parameterized strategy comparisons, cost accounting and reproducible research | No vectorbt runtime, no guaranteed net alpha |
+| [QuantConnect LEAN](https://github.com/QuantConnect/Lean) | Trade timestamp discipline and conservative next-session execution principle | No realistic intraday fills, broker order management or LEAN engine |
+| [PyPortfolioOpt](https://github.com/robertmartin8/PyPortfolioOpt) | Concentration/correlation/volatility risk perspective | No actual constrained portfolio optimizer |
+| [ML for Trading](https://github.com/stefan-jansen/machine-learning-for-trading) | Sample-out validation, leakage checks and anti-overfitting rigor | No copying of published historical ML results |
 
-**License notice:** vectorbt community edition is currently Apache 2.0 with Commons Clause, not plain MIT. Verify license rights before commercial reuse. V1 does not copy its source.
+**Not investment advice.** No live brokerage or Firstrade API connection exists. Yahoo Finance/yfinance market data are intended for personal educational/research use and may not be licensed for public redistribution or commercial resale. Check rights before promoting a public site; secure a licensed market data source for commercialization. This public GitHub Pages site and its static market/news JSON are accessible to others; your imported holdings are not committed.
 
-## Run locally
+### GitHub Pages
 
-Install Python dependencies: **python -m pip install -r requirements.txt**.
-Then update prices: **python scripts/update_prices.py**.
-Serve the static repository root over HTTP (for example **python -m http.server 8000**) and open http://localhost:8000/.
-To validate strategy logic run **node tests/engine.test.cjs**.
+The site uses [GitHub Pages Actions](.github/workflows/publish-pages.yml), which packages the app only and redeploys after source changes or completed price/news/model workflows. Repositories and Pages websites are **publicly accessible here**. If the deploy job fails or the website returns 404, inspect Settings → Pages and the [deployment workflow](https://github.com/alvinxyyzzz/MakeMoney/actions).
 
-## Privacy
+### Test and maintain
 
-Portfolio shares, cost, cash and imported CSV exist only in the local browser storage. There is no login, server sync or broker connection. JSON backups include personal financial information and should be handled carefully. Clearing browser data or deleting a home-screen app may erase local data.
+Run \`node tests/engine.test.cjs\` and \`node tests/decision.test.cjs\`.
 
-## Roadmap
+The project has separate weekly-price, RSS and ML workflows. Each writes only public/static reference JSON; **no API key or portfolio credential should ever be committed**.
 
-- V2: compare to SPY/VOO/QQQM, expanding-window walk-forward, parameter robustness, transaction-cost sensitivity and stronger slippage model.
-- V3: fundamental valuation, earnings and macro signals with auditably point-in-time data.
-- V4: optional separate Python Qlib research pipeline and genuinely out-of-sample comparisons with simple strategies; real PyPortfolioOpt risk allocation.
-- Future: opt-in broker file import, with privacy and data licensing safeguards. No auto-execution in V1.
+### Caveats and planned improvements
+
+- Fundamental valuations and source-verified earnings commentary currently require ChatGPT research; no fundamentals database or automated fully reasoned weekly AI reports are claimed.
+- Some CSV exports may use different names, field formats or options; import has an explicit preview and skip notice.
+- Technical adjusted prices should not be read as current broker-executable bid/ask. For trading, check the live quotation in Firstrade.
+- Default technical portfolio warnings use a simple 20% single-stock threshold. The user's stated approximate 40% tolerance is a **risk boundary**, not a promise that stops can keep losses below it.
+- Backtests are simplified: no real order-book fill, earnings gaps, bid-ask spreads, taxes, benchmark dividend policy differences or real-time corporate-action adjustment guarantees.
+- Model validation must not be repurposed as proof of profitable implementation. Independent portfolio-level forward testing and licensed corporate financial data are priorities before any commercial product.
