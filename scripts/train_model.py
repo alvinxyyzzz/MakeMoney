@@ -110,7 +110,7 @@ def main():
   if pd.notna(ic):ics.append(float(ic))
  mean_ic=float(np.mean(ics)) if ics else None
  # Equal-weight cross-sectional factor baseline, rank correlation against same target.
- hold["baseline"]=hold[["r63","r126","ma200"]].rank(pct=True).mean(axis=1)
+ hold["baseline"]=hold.groupby("date")[["r63","r126","ma200"]].rank(pct=True).mean(axis=1)
  baseics=[]
  for _,group in hold.groupby("date"):
   if len(group)<15:continue
