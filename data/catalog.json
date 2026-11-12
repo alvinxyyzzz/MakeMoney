@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-11-12T01:37:03Z",
+  "updated_at": "2026-11-12T02:03:40Z",
   "provider": "Yahoo Finance via yfinance (personal research only)",
   "price_mode": "historical adjusted OHLC; daily; not live",
   "symbols": {
@@ -96,13 +96,13 @@
     "SCHD": {
       "first": "2018-11-12",
       "last": "2026-11-10",
-      "rows": 2007,
+      "rows": 2008,
       "status": "updated"
     },
     "RSP": {
       "first": "2018-11-12",
       "last": "2026-11-10",
-      "rows": 2009,
+      "rows": 2007,
       "status": "updated"
     },
     "IJR": {
