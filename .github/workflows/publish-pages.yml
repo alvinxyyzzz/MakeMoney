@@ -8,12 +8,18 @@ on:
       - "index.html"
       - "styles.css"
       - "app.js"
+      - "decision.js"
+      - "weekly-ui.js"
+      - "holdings-import.js"
       - "engine.js"
       - "sw.js"
       - "manifest.webmanifest"
       - "icons/**"
       - "data/**"
       - ".github/workflows/publish-pages.yml"
+  workflow_run:
+    workflows: ["Update market data", "Update weekly investment news", "Train weekly quant ML experiment"]
+    types: [completed]
 
 permissions:
   contents: read
@@ -28,6 +34,7 @@ jobs:
   deploy:
     name: Publish static mobile app
     runs-on: ubuntu-latest
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
     environment:
       name: github-pages
       url: ${{ steps.deploy.outputs.page_url }}
@@ -36,13 +43,14 @@ jobs:
       - name: Validate app and required data
         run: |
           node tests/engine.test.cjs
+          node tests/decision.test.cjs
           python -m json.tool data/catalog.json >/dev/null
           test -s index.html
           test -s data/NVDA.json
       - name: Create publish directory with only static app assets
         run: |
           mkdir -p site/data site/icons
-          cp index.html styles.css app.js engine.js sw.js manifest.webmanifest site/
+          cp index.html styles.css app.js engine.js decision.js weekly-ui.js holdings-import.js sw.js manifest.webmanifest site/
           cp icons/icon.svg icons/icon-180.png site/icons/
           cp data/*.json site/data/
           touch site/.nojekyll
