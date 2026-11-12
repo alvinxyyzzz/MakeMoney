@@ -77,32 +77,42 @@ function scan(data,spy,now){
  return Object.keys(data||{}).map(t=>assess(t,data[t],spy,now)).filter(Boolean).sort((a,b)=>b.score-a.score||a.symbol.localeCompare(b.symbol));
 }
 function portfolio(positions,data,spy,cash){
- const list=[];
- (positions||[]).forEach(p=>{
+ const list=[],unpriced=[],input=Array.isArray(positions)?positions:[];
+ input.forEach(p=>{
+  if(!p||typeof p.symbol!=="string")return;
   const b=norm(data&&data[p.symbol]),shares=+p.shares;
-  if(!b.length||!isNum(shares)||shares<=0)return;
+  if(!isNum(shares)||shares<=0)return;
+  if(!b.length){
+   unpriced.push({symbol:p.symbol,shares,cost:+p.cost||0});
+   return;
+  }
   const price=last(b).c;
   list.push({symbol:p.symbol,shares,price,value:shares*price,cost:+p.cost||0,bars:b});
  });
- if(!list.length)return null;
- const money=Math.max(0,+cash||0),invested=list.reduce((s,x)=>s+x.value,0),total=invested+money;
- list.forEach(x=>{x.weight=x.value/total;x.beta=spy?beta(x.bars,spy,126):null;});
- const topWeight=Math.max(...list.map(x=>x.weight)),hhi=list.reduce((s,x)=>s+x.weight**2,0);
+ if(!list.length&&!unpriced.length)return null;
+ const money=Math.max(0,+cash||0),invested=list.reduce((s,x)=>s+x.value,0),pricedValue=invested+money;
+ const complete=unpriced.length===0,total=complete?pricedValue:null;
+ list.forEach(x=>{x.weight=complete?x.value/pricedValue:null;x.beta=spy?beta(x.bars,spy,126):null;});
  const weights=list.map(x=>x.weight);
+ const hhi=complete?list.reduce((s,x)=>s+x.weight**2,0):null;
  const dates=list.map(x=>returnMap(x.bars));
- const allDates=Object.keys(dates[0]).filter(d=>dates.every(m=>Object.hasOwn(m,d))).sort().slice(-126);
+ const allDates=dates.length?Object.keys(dates[0]).filter(d=>dates.every(m=>Object.hasOwn(m,d))).sort().slice(-126):[];
  let annVol=null;
- if(allDates.length>=60){
-  const daily=allDates.map(d=>dates.reduce((s,m,i)=>s+weights[i]*m[d],0));
+ if(complete&&allDates.length>=60){
+  const daily=allDates.map(d=>dates.reduce((sum,m,i)=>sum+weights[i]*m[d],0));
   annVol=Math.sqrt(variance(daily)*252);
  }
  const strongest=list.map(a=>({symbol:a.symbol,other:list.filter(b=>b.symbol!==a.symbol).map(b=>({symbol:b.symbol,corr:corr(a.bars,b.bars,126)})).filter(x=>isNum(x.corr)).sort((x,y)=>y.corr-x.corr)[0]})).filter(x=>x.other);
  const clusters=strongest.filter(x=>x.other.corr>.75);
- return {list,total,invested,cash:money,concentration:topWeight,hhi,annVol,clusters,beta:list.reduce((s,x)=>s+(x.beta||0)*x.weight,0),coverage:allDates.length,largest:list.slice().sort((a,b)=>b.weight-a.weight)[0]};
+ return {list,unpriced,total,pricedValue,isComplete:complete,invested,cash:money,
+  concentration:complete?Math.max(...weights):null,hhi,annVol,clusters,
+  beta:complete?list.reduce((sum,x)=>sum+(x.beta||0)*x.weight,0):null,
+  coverage:allDates.length,largest:list.length?list.slice().sort((a,b)=>b.value-a.value)[0]:null};
 }
 function actionForHolding(symbol,assessed,weight,limit){
  if(!assessed)return {label:"缺少資料",kind:"stale",why:"請先更新該股票歷史資料"};
  if(assessed.className==="stale")return {label:"暫不操作",kind:"stale",why:"報價已過期"};
+ if(weight==null)return {label:"等待完整報價",kind:"stale",why:"部分持倉無法定價，暫停以組合權重建議加減倉"};
  if(weight>limit)return {label:"檢視減倉",kind:"defensive",why:"組合比重超過 "+Math.round(limit*100)+"% 設定上限"};
  if(!assessed.trend)return {label:"重新評估持有",kind:"defensive",why:"長期趨勢轉弱，核對基本面及投資論點是否受損"};
  if(assessed.score>=70)return {label:"持有 / 研究加碼",kind:"candidate",why:"技術面較強，但仍需檢查估值與最新財報"};
