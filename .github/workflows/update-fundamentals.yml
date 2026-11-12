@@ -1,0 +1,47 @@
+name: Update weekly financial snapshots
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "45 2 * * 0"
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/update-fundamentals.yml"
+      - "scripts/update_fundamentals.py"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: financial-snapshot-refresh
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: python -m pip install -r requirements.txt
+      - name: Retrieve snapshot with explicit missing fields
+        run: python scripts/update_fundamentals.py
+      - run: python -m json.tool data/fundamentals.json >/dev/null
+      - name: Commit public market reference only
+        run: |
+          if [ -z "$(git status --porcelain -- data/fundamentals.json)" ]; then exit 0; fi
+          git config user.name "MakeMoney Fundamentals Bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/fundamentals.json
+          git commit -m "data: refresh vendor financial snapshots"
+          for attempt in 1 2 3 4; do
+            git fetch origin main
+            git rebase origin/main
+            if git push origin HEAD:main; then exit 0; fi
+            sleep 3
+          done
+          exit 1
