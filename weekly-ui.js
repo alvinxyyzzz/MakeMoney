@@ -22,7 +22,7 @@ function valuationLabel(f){
 const labelClass=cls=>({candidate:"signal-green",defensive:"signal-red",stale:"signal-amber",wait:"signal-neutral"}[cls]||"signal-neutral");
 const SECTOR_PRIORITY=["AI 算力","AI 半導體","半導體製造","AI 基礎建設","電力與散熱","電力與核能","大型科技平台","企業軟體","網路安全","必需消費","可選消費","金融","醫療","工業","不動產 REIT","石油能源"];
 function report(state){
- const symbols=Object.keys(state.data||{}),data=state.data||{},spy=data.SPY||[],ranked=D.scan(data,spy,dateNow()),env=D.market(spy);
+ const data=state.data||{},spy=data.SPY||[],ranked=state.snapshot&&Array.isArray(state.snapshot.ranked)&&state.snapshot.ranked.length?state.snapshot.ranked:D.scan(data,spy,dateNow()),env=state.snapshot&&state.snapshot.market&&state.snapshot.market.type?state.snapshot.market:D.market(spy);
  const positions=state.portfolio||[],portfolio=D.portfolio(positions,data,spy,state.cash);
  return {ranked,env,portfolio};
 }
@@ -50,19 +50,37 @@ function weekly(state,news){
  if(p){
    const holdings=(state.portfolio||[]).map(x=>{
     const a=info.ranked.find(r=>r.symbol===x.symbol),data=state.data[x.symbol],last=data&&data.length?data[data.length-1]:null,weight=p.list.find(k=>k.symbol===x.symbol);
-    const action=D.actionForHolding(x.symbol,a,weight?weight.weight:0,.20);
+    const action=D.actionForHolding(x.symbol,a,weight?weight.weight:null,.20);
     return {symbol:x.symbol,a,action,weight};
    });
    const unknown=holdings.filter(h=>!h.a);
    html+='<div class="section-head spaced"><div><div class="eyebrow">01 / YOUR CAPITAL</div><h2>你的持倉 · 下一步</h2></div><button class="button ghost" data-tab="portfolio">更新持倉 ↗</button></div>';
-   html+='<div class="weekly-metrics"><div><small>總資產（已定價 + 現金）</small><strong>'+usd(p.total)+'</strong></div><div><small>最大個股權重</small><strong>'+short(p.concentration)+'</strong></div><div><small>126日模型年化波動</small><strong>'+pct(p.annVol)+'</strong></div></div>';
+   html+='<div class="weekly-metrics"><div><small>'+(p.isComplete?'估算總資產':'已定價部分（非總資產）')+'</small><strong>'+usd(p.isComplete?p.total:p.pricedValue)+'</strong></div><div><small>最大個股權重</small><strong>'+short(p.concentration)+'</strong></div><div><small>126日模型年化波動</small><strong>'+pct(p.annVol)+'</strong></div></div>';
    html+='<div class="decision-list">'+holdings.map(h=>
     '<button class="decision-item" data-open-symbol="'+safe(h.symbol)+'"><div class="decision-symbol"><b>'+safe(h.symbol)+'</b><small>'+short(h.weight&&h.weight.weight)+'</small></div><div class="decision-explain"><b>'+safe(h.action.label)+'</b><small>'+safe(h.action.why)+'</small></div><span class="decision-arrow">↗</span></button>'
    ).join("")+'</div>';
    if(p.clusters.length)html+='<div class="portfolio-caution">⚠ 有 '+p.clusters.length+' 組持倉在126日內呈現高度同向波動（相關係數 > 0.75）。科技股名稱不同，不代表真正分散。</div>';
    if(unknown.length)html+='<div class="portfolio-caution">有 '+unknown.length+' 個持倉缺少足夠行情，暫不給出價格型建議。</div>';
+   if(!p.isComplete)html+='<div class="portfolio-caution">有 '+p.unpriced.length+' 個持倉缺少報價，估算總資產與完整權重已暫停顯示。</div>';
  }else{
  html+='<div class="empty-state onboarding"><div class="eyebrow">01 / START WITH YOUR HOLDINGS</div><h2>先導入 Firstrade 持倉</h2><p>匯入目前的股票數量與均價，系統才有辦法針對你的真實組合提出動作。所有私人持倉只保存在你的設備。</p><button class="button primary" data-tab="portfolio">匯入持倉 →</button></div>';
+ }
+
+ if(root.DecisionJournal&&state.snapshot&&state.snapshot.ranked&&state.snapshot.ranked.length){
+  const journal=root.DecisionJournal.sync(state,news),diff=journal.changes||[],previous=journal.previous;
+  html+='<div class="section-head spaced"><div><div class="eyebrow">YOUR WEEKLY DELTA</div><h2>本週與上週有什麼不同？</h2></div><span class="chip">本機記憶 · '+journal.historyCount+' 週</span></div>';
+  html+='<div class="card note">'+(previous?'<p>以上週 '+safe(previous.week)+' 為基準；只列出重要變更，無需每週重新分析所有股票。</p>':'<p>已建立本機第一份基準。下週開始比較持倉、技術訊號與關鍵新聞變化。</p>')
+   +(diff.length?'<div class="decision-list">'+diff.slice(0,6).map(d=>'<div class="decision-item"><div class="decision-symbol"><b>'+safe(d.symbol||"市場")+'</b></div><div class="decision-explain"><b>'+safe(d.label)+'</b><small>'+safe(d.reason)+'</small></div></div>').join("")+'</div>':'<p class="smallmuted">沒有偵測到達門檻的重要變化，毋須強行交易。</p>')
+   +'<div class="row-actions"><button class="button primary" data-ai="portfolio">✦ 只分析變化（省額度）</button><button class="button ghost" data-tab="journal">研究紀錄 ↗</button></div></div>';
+ }
+ if(root.PublicBridge&&p){
+  const alerts=root.PublicBridge.gather(state.portfolio||[],news,state.snapshot||{},dateNow());
+  html+='<div class="section-head spaced"><div><div class="eyebrow">PUBLIC INFO × YOUR HOLDINGS</div><h2>和你的持倉有關的情報</h2></div><span class="chip">規則比對 · 非新聞情緒 AI</span></div>';
+  if(alerts.length){
+   html+='<div class="card note"><p>根據持倉股票、同產業及可能的供需關聯，在你的裝置內比對公開新聞。關聯屬於監控假設，不代表事件必然利多或利空。</p><div class="news-links">'+alerts.slice(0,6).map(a=>
+    '<a href="'+safe(a.url)+'" target="_blank" rel="noopener noreferrer"><span class="news-time">'+safe(a.holding)+' / '+safe(a.source)+'</span><span><b>'+safe(a.kind==="direct"?"直接相關":"延伸觀察")+'</b> '+safe(a.title)+'</span><b>↗</b></a>'
+   ).join("")+'</div></div>';
+  }else html+='<div class="card note"><p>本週沒有可核對的直接或產業關聯新聞索引，並不代表沒有重大事件。</p></div>';
  }
  html+='<div class="section-head spaced"><div><div class="eyebrow">02 / CURRENT OPPORTUNITIES</div><h2>本週觀察名單</h2></div><button class="button ghost" data-tab="discover">全部市場機會 ↗</button></div>';
  html+='<p class="smallmuted">多因子技術評分，不是 AI 預測或已確認估值便宜。必須核對財報與消息才能判斷「現在是否值得買」。</p>';
