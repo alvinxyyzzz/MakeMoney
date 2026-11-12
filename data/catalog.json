@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-11-11T11:00:29Z",
+  "updated_at": "2026-11-12T01:16:25Z",
   "provider": "Yahoo Finance via yfinance (personal research only)",
   "price_mode": "historical adjusted OHLC; daily; not live",
   "symbols": {
@@ -36,7 +36,7 @@
     "TSM": {
       "first": "2018-11-12",
       "last": "2026-11-10",
-      "rows": 2008,
+      "rows": 2009,
       "status": "updated"
     },
     "ADBE": {
@@ -84,7 +84,7 @@
     "VOO": {
       "first": "2018-11-12",
       "last": "2026-11-10",
-      "rows": 2009,
+      "rows": 2008,
       "status": "updated"
     },
     "QQQM": {
@@ -96,16 +96,226 @@
     "SCHD": {
       "first": "2018-11-12",
       "last": "2026-11-10",
-      "rows": 2008,
+      "rows": 2007,
       "status": "updated"
     },
     "RSP": {
       "first": "2018-11-12",
       "last": "2026-11-10",
-      "rows": 2009,
+      "rows": 2008,
       "status": "updated"
     },
     "IJR": {
+      "first": "2018-11-12",
+      "last": "2026-11-10",
+      "rows": 2009,
+      "status": "updated"
+    },
+    "AVGO": {
+      "first": "2018-11-12",
+      "last": "2026-11-10",
+      "rows": 2009,
+      "status": "updated"
+    },
+    "MU": {
+      "first": "2018-11-12",
+      "last": "2026-11-10",
+      "rows": 2009,
+      "status": "updated"
+    },
+    "ASML": {
+      "first": "2018-11-12",
+      "last": "2026-11-10",
+      "rows": 2009,
+      "status": "updated"
+    },
+    "AMAT": {
+      "first": "2018-11-12",
+      "last": "2026-11-10",
+      "rows": 2009,
+      "status": "updated"
+    },
+    "LRCX": {
+      "first": "2018-11-12",
+      "last": "2026-11-10",
+      "rows": 2009,
+      "status": "updated"
+    },
+    "ORCL": {
+      "first": "2018-11-12",
+      "last": "2026-11-10",
+      "rows": 2009,
+      "status": "updated"
+    },
+    "CRWV": {
+      "first": "2025-03-28",
+      "last": "2026-11-10",
+      "rows": 408,
+      "status": "updated"
+    },
+    "VRT": {
+      "first": "2018-11-12",
+      "last": "2026-11-10",
+      "rows": 2009,
+      "status": "updated"
+    },
+    "ETN": {
+      "first": "2018-11-12",
+      "last": "2026-11-10",
+      "rows": 2009,
+      "status": "updated"
+    },
+    "NEE": {
+      "first": "2018-11-12",
+      "last": "2026-11-10",
+      "rows": 2009,
+      "status": "updated"
+    },
+    "COST": {
+      "first": "2018-11-12",
+      "last": "2026-11-10",
+      "rows": 2009,
+      "status": "updated"
+    },
+    "WMT": {
+      "first": "2018-11-12",
+      "last": "2026-11-10",
+      "rows": 2009,
+      "status": "updated"
+    },
+    "PG": {
+      "first": "2018-11-12",
+      "last": "2026-11-10",
+      "rows": 2009,
+      "status": "updated"
+    },
+    "KO": {
+      "first": "2018-11-12",
+      "last": "2026-11-10",
+      "rows": 2009,
+      "status": "updated"
+    },
+    "MCD": {
+      "first": "2018-11-12",
+      "last": "2026-11-10",
+      "rows": 2009,
+      "status": "updated"
+    },
+    "JPM": {
+      "first": "2018-11-12",
+      "last": "2026-11-10",
+      "rows": 2009,
+      "status": "updated"
+    },
+    "V": {
+      "first": "2018-11-12",
+      "last": "2026-11-10",
+      "rows": 2009,
+      "status": "updated"
+    },
+    "MA": {
+      "first": "2018-11-12",
+      "last": "2026-11-10",
+      "rows": 2009,
+      "status": "updated"
+    },
+    "UNH": {
+      "first": "2018-11-12",
+      "last": "2026-11-10",
+      "rows": 2008,
+      "status": "updated"
+    },
+    "LLY": {
+      "first": "2018-11-12",
+      "last": "2026-11-10",
+      "rows": 2009,
+      "status": "updated"
+    },
+    "JNJ": {
+      "first": "2018-11-12",
+      "last": "2026-11-10",
+      "rows": 2009,
+      "status": "updated"
+    },
+    "CAT": {
+      "first": "2018-11-12",
+      "last": "2026-11-10",
+      "rows": 2009,
+      "status": "updated"
+    },
+    "DE": {
+      "first": "2018-11-12",
+      "last": "2026-11-10",
+      "rows": 2009,
+      "status": "updated"
+    },
+    "GE": {
+      "first": "2018-11-12",
+      "last": "2026-11-10",
+      "rows": 2009,
+      "status": "updated"
+    },
+    "O": {
+      "first": "2018-11-12",
+      "last": "2026-11-10",
+      "rows": 2009,
+      "status": "updated"
+    },
+    "PLD": {
+      "first": "2018-11-12",
+      "last": "2026-11-10",
+      "rows": 2009,
+      "status": "updated"
+    },
+    "AMT": {
+      "first": "2018-11-12",
+      "last": "2026-11-10",
+      "rows": 2009,
+      "status": "updated"
+    },
+    "HD": {
+      "first": "2018-11-12",
+      "last": "2026-11-10",
+      "rows": 2009,
+      "status": "updated"
+    },
+    "DIS": {
+      "first": "2018-11-12",
+      "last": "2026-11-10",
+      "rows": 2009,
+      "status": "updated"
+    },
+    "XOM": {
+      "first": "2018-11-12",
+      "last": "2026-11-10",
+      "rows": 2008,
+      "status": "updated"
+    },
+    "CVX": {
+      "first": "2018-11-12",
+      "last": "2026-11-10",
+      "rows": 2009,
+      "status": "updated"
+    },
+    "PANW": {
+      "first": "2018-11-12",
+      "last": "2026-11-10",
+      "rows": 2009,
+      "status": "updated"
+    },
+    "CRWD": {
+      "first": "2019-06-12",
+      "last": "2026-11-10",
+      "rows": 1865,
+      "status": "updated"
+    },
+    "CRM": {
+      "first": "2018-11-12",
+      "last": "2026-11-10",
+      "rows": 2009,
+      "status": "updated"
+    },
+    "GLD": {
       "first": "2018-11-12",
       "last": "2026-11-10",
       "rows": 2009,
