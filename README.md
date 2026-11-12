@@ -1,10 +1,22 @@
 # MakeMoney · Weekly Investment Decision Cockpit
 
-**Current release: MVP v2 — 12 November 2026.** A mobile-first, static investment decision workspace, focused on **what to do with your Firstrade US stocks this week** and **which sectors or candidates deserve immediate deeper research**.
+**Current release: MVP v3 — 12 November 2026.** A mobile-first, static investment decision workspace, focused on **what to do with your Firstrade US stocks this week** and **which sectors or candidates deserve immediate deeper research**.
 
 - [Open the deployed app](https://alvinxyyzzz.github.io/MakeMoney/)
 - [Inspect GitHub Actions](https://github.com/alvinxyyzzz/MakeMoney/actions)
 - [Model selection & validation protocol](docs/research-design.md)
+
+### New in V3 — public/private investment intelligence
+
+- **Three main tabs:** weekly decisions, actual holdings, market discovery. Technical charts and backtests are advanced links.
+- **Public events joined to private holdings:** source-linked headlines are matched locally by direct ticker, same sector, and *hypothesized* supply chain/competitor exposure. No automatic bullish/bearish classification.
+- **Weekly delta memory:** limited history of prior positions, market risk, price/factor changes, and headlines. No remote user account.
+- **Research journal:** save ChatGPT conclusions and manual action notes on the device. Explicit JSON backup includes these notes; it is **not encrypted**.
+- **Compact AI briefs:** only changes, affected tickers, small evidence fields, and the latest memo excerpt instead of all prior research.
+- **Lean iPhone startup:** roughly 54 KB precomputed factor scan, then lazy historical OHLC loading only for selected and held tickers.
+- **Portfolio completeness safeguards:** do not claim known partial value is complete total assets or publish full portfolio concentration when a holding is unpriced.
+
+The [public-information × private-holdings architecture](docs/public-private-intelligence.md) describes official sources, trigger policy, citations and data licensing constraints.
 
 ### What you can actually use now
 
