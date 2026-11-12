@@ -18,7 +18,7 @@ on:
       - "data/**"
       - ".github/workflows/publish-pages.yml"
   workflow_run:
-    workflows: ["Update market data", "Update weekly investment news", "Train weekly quant ML experiment"]
+    workflows: ["Update market data", "Update weekly investment news", "Train weekly quant ML experiment", "Update weekly financial snapshots"]
     types: [completed]
 
 permissions:
