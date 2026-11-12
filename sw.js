@@ -1,6 +1,6 @@
 /* Cache only the app shell, never EOD market-data files or private backups. */
-const CACHE = "makemoney-shell-v2";
-const SHELL = ["./", "./index.html", "./styles.css", "./engine.js", "./app.js", "./decision.js", "./weekly-ui.js", "./holdings-import.js", "./manifest.webmanifest", "./icons/icon.svg", "./icons/icon-180.png"];
+const CACHE = "makemoney-shell-v3";
+const SHELL = ["./", "./index.html", "./styles.css", "./engine.js", "./app.js", "./decision.js", "./weekly-ui.js", "./holdings-import.js", "./decision-journal.js", "./public-bridge.js", "./manifest.webmanifest", "./icons/icon.svg", "./icons/icon-180.png"];
 self.addEventListener("install", function(event) {
   event.waitUntil(caches.open(CACHE).then(function(c){return c.addAll(SHELL);}).then(function(){return self.skipWaiting();}).catch(function(){}));
 });
