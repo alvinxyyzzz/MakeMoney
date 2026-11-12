@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-11-12T01:25:21Z",
+  "updated_at": "2026-11-12T01:37:03Z",
   "provider": "Yahoo Finance via yfinance (personal research only)",
   "price_mode": "historical adjusted OHLC; daily; not live",
   "symbols": {
@@ -36,7 +36,7 @@
     "TSM": {
       "first": "2018-11-12",
       "last": "2026-11-10",
-      "rows": 2009,
+      "rows": 2008,
       "status": "updated"
     },
     "ADBE": {
@@ -78,13 +78,13 @@
     "SPY": {
       "first": "2018-11-12",
       "last": "2026-11-10",
-      "rows": 2008,
+      "rows": 2009,
       "status": "updated"
     },
     "VOO": {
       "first": "2018-11-12",
       "last": "2026-11-10",
-      "rows": 2008,
+      "rows": 2009,
       "status": "updated"
     },
     "QQQM": {
@@ -204,7 +204,7 @@
     "JPM": {
       "first": "2018-11-12",
       "last": "2026-11-10",
-      "rows": 2008,
+      "rows": 2009,
       "status": "updated"
     },
     "V": {
