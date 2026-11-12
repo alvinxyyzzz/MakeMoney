@@ -1,5 +1,5 @@
 {
-  "trained_at": "2026-11-12T01:27:21+00:00",
+  "trained_at": "2026-11-12T01:36:59+00:00",
   "model": "LightGBM regression on original Qlib-inspired price factors (not Qlib runtime)",
   "prediction_horizon_sessions": 21,
   "benchmark": "SPY adjusted closing prices",
