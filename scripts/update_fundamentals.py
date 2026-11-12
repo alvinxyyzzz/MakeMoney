@@ -62,7 +62,7 @@ def main():
   time.sleep(.15)
  if not count:
   print("Fundamentals provider unavailable: preserve last good data",flush=True)
-  return 0 if previous else 1
+  return 0 if previous.get("symbols") else 1
  result={"updated_at":now,"source":"Yahoo Finance via yfinance get_info, secondary/vendor data",
    "not_audited":True,"not_sec_as_filed":True,"price_basis":"Yahoo dynamic vendor fields; not guaranteed same session as EOD adjusted close",
    "symbols":rows,"failed":errors,"fresh_symbols":count}
