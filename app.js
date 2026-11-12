@@ -4,8 +4,8 @@
 var Q=window.QuantCore;
 var DEFAULTS=["NVDA","GOOGL","MSFT","AAPL","TSLA","TSM","ADBE","NOW","AMZN","META","AMD","CEG","SPY","VOO","QQQM","SCHD","RSP","IJR"];
 var STORAGE="makemoney-personal-v1", state={
- tab:"research",symbol:"NVDA",period:"1Y",strategy:"ensemble",cost:10,
- portfolio:[],custom:{},catalog:null,data:{},loading:{},errors:{},asof:null,
+ tab:"weekly",symbol:"NVDA",period:"1Y",strategy:"ensemble",cost:10,
+ portfolio:[],custom:{},catalog:null,data:{},loading:{},errors:{},asof:null,news:null,importPreview:null,detailSymbol:null,
  capital:20000,risk:1,allocation:20,cash:0,ddLimit:40
 };
 var root=document.getElementById("app"),status=document.getElementById("status");
@@ -33,12 +33,16 @@ async function load(t){
  state.loading[t]=true;state.errors[t]=null;
  try{var r=await fetch("./data/"+encodeURIComponent(t)+".json?v="+Date.now(),{cache:"no-store"});if(!r.ok)throw Error("尚無此股票的資料檔");var j=await r.json(),b=Q.normalizeBars(j);if(b.length<2)throw Error("歷史行情不足");state.data[t]=b;}
  catch(e){state.errors[t]=e.message||"資料讀取失敗";}
- finally{delete state.loading[t];render();}
+ finally{delete state.loading[t];if(t===state.symbol||t==="SPY"||state.tab==="portfolio")render();}
 }
 async function init(){
  restore();
  try{var r=await fetch("./data/catalog.json?v="+Date.now(),{cache:"no-store"});if(r.ok)state.catalog=await r.json();}catch(e){}
- render();await Promise.all(Array.from(new Set([state.symbol,"SPY"].concat(state.portfolio.map(function(p){return p.symbol;})))).map(load));
+ try{var n=await fetch("./data/weekly-news.json?v="+Date.now(),{cache:"no-store"});if(n.ok)state.news=await n.json();}catch(e){}
+ render();
+ var all=Object.keys(state.catalog&&state.catalog.symbols||{});
+ await Promise.all(Array.from(new Set([state.symbol,"SPY"].concat(state.portfolio.map(function(p){return p.symbol;})).concat(all))).map(load));
+ render();
 }
 function icon(name){
  var path={
@@ -53,13 +57,13 @@ function icon(name){
  return '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+path+'</svg>';
 }
 function tabs(){
- var links=[["research","研究台","chart"],["backtest","策略回測","layers"],["portfolio","我的持倉","shield"],["method","模型研究","book"]];
+ var links=[["weekly","本週決策","chart"],["portfolio","我的持倉","shield"],["discover","發掘機會","layers"],["research","個股研究","book"],["backtest","策略實驗","sliders"]];
  return '<nav class="tabs" aria-label="主選單">'+links.map(function(t){return '<button data-tab="'+t[0]+'" class="'+(state.tab===t[0]?"active":"")+'">'+icon(t[2])+'<span>'+t[1]+'</span></button>';}).join("")+'</nav>';
 }
 function top(){
  var b=bars(state.symbol),last=b&&b[b.length-1],date=last&&last.d;
  var delay=date?Math.round((new Date(todayUTC()+"T00:00:00Z")-new Date(date+"T00:00:00Z"))/86400000):null;
- return '<div class="topline"><div><div class="eyebrow"><span class="live-dot"></span> PRIVATE QUANT TERMINAL <span class="ver">v1.0 RESEARCH</span></div><h1><span class="brand-mark">M<span>.</span></span> MakeMoney</h1><div class="subtitle">Research first. Trade with evidence.</div></div><div class="asof"><span class="subtle">歷史資料截至</span><b>'+esc(date||"等待行情")+'</b><span class="data-pill '+(delay!=null&&delay>4?"stale":"")+'">'+(delay==null?"未載入":delay>4?"資料可能過期":"日線 / 非即時")+'</span></div></div>';
+ return '<div class="topline"><div><div class="eyebrow"><span class="live-dot"></span> PRIVATE QUANT TERMINAL <span class="ver">v2.0 WEEKLY</span></div><h1><span class="brand-mark">M<span>.</span></span> MakeMoney</h1><div class="subtitle">Research first. Trade with evidence.</div></div><div class="asof"><span class="subtle">歷史資料截至</span><b>'+esc(date||"等待行情")+'</b><span class="data-pill '+(delay!=null&&delay>4?"stale":"")+'">'+(delay==null?"未載入":delay>4?"資料可能過期":"日線 / 非即時")+'</span></div></div>';
 }
 function notice(){return '<div class="notice"><span class="notice-mark">◎</span><span>個人投資研究工具，不是即時交易報價、投資保證或自動下單系統。所有價位均為技術情境估算，請核對券商行情。</span></div>';}
 function selector(){
@@ -140,6 +144,11 @@ function portfolioPage(){
    return {symbol:x.symbol,shares:shares,cost:cost,price:current,mv:mv,invested:invested,date:last&&last.d};
  });
  var html='<div class="section-head"><div><div class="eyebrow">PRIVATE / DEVICE ONLY</div><h2>我的投資組合</h2></div><button data-action="backup" class="button ghost">'+icon("download")+' 匯出備份</button></div><div class="card note"><b>你的股數與成本只儲存在這個瀏覽器內</b><p>不會自動同步到 GitHub 或傳給伺服器。換 iPhone、清除網站資料或重新安裝 PWA 前，請先匯出 JSON 備份。</p><label class="inline-upload">匯入先前備份 JSON<input id="backup-upload" type="file" accept=".json,application/json" hidden></label></div>';
+ html+='<div class="card import-card"><div class="eyebrow">FIRSTRADE / OFFLINE IMPORT</div><h3>匯入 Firstrade 持倉 CSV</h3><p>支援 Symbol、Quantity、Average Cost 欄位；先預覽再取代。只在本機解析，沒有上傳到 GitHub。</p><label class="button primary"><input id="firstrade-import" type="file" accept=".csv,text/csv" hidden>上傳 Firstrade 持倉檔</label><p class="smallmuted">如果券商只有 PDF 或截圖，請手動輸入，避免辨識誤差。</p></div>';
+ if(state.importPreview){
+ var pv=state.importPreview;
+ html+='<div class="card import-review"><h3>先核對匯入預覽</h3><p>辨識 '+pv.holdings.length+' 個標的，跳過 '+pv.skipped.length+' 行。確認股數、成本無誤才取代既有持倉。</p><div class="import-table">'+pv.holdings.map(function(p){return '<div><strong>'+esc(p.symbol)+'</strong><span>'+fmt(p.shares,4)+' 股</span><b>'+usd(p.cost)+'/股</b></div>';}).join("")+'</div><div class="row-actions"><button class="button primary" data-action="confirm-import">確認取代持倉</button><button class="button ghost" data-action="cancel-import">取消</button></div></div>';
+ }
  html+='<div class="metric-grid">'+metric("已輸入持倉成本",usd(capital,0),P.length+" 個標的")+metric("可估算市值",known?usd(value,0):"—",known+"/"+P.length+" 個有價格")+metric("已定價持倉損益",known?pct((value-list.reduce(function(s,x){return s+(x.mv!=null?x.invested:0);},0))/Math.max(1,list.reduce(function(s,x){return s+(x.mv!=null?x.invested:0);},0))):"—","未計匯率、配息、稅費")+metric("現金（手動設定）",usd(state.cash,0),"不會自動連接券商")+'</div>';
  html+='<div class="card holdings-card"><div class="card-heading"><h3>持倉明細</h3><span class="chip">'+P.length+' 檔</span></div>';
  if(!P.length)html+='<p class="empty-row">尚未新增持倉。填入股票、股數和每股成本即可開始分析。</p>';
@@ -160,9 +169,28 @@ function methodPage(){
 }
 function render(){
  if(!root)return;
- root.innerHTML=top()+notice()+tabs()+'<main class="page">'+(state.tab==="research"?research():state.tab==="backtest"?backtestPage():state.tab==="portfolio"?portfolioPage():methodPage())+'</main><footer>MAKEMONEY / PRIVATE RESEARCH BUILD <span>·</span> NO BROKER CONNECTION <span>·</span> NOT FINANCIAL ADVICE</footer>';
+ var content=state.detailSymbol?WeeklyUI.detail(state,state.news,state.detailSymbol):
+ state.tab==="weekly"?WeeklyUI.weekly(state,state.news):
+ state.tab==="discover"?WeeklyUI.discover(state,state.news):
+ state.tab==="portfolio"?portfolioPage():
+ state.tab==="research"?research()+'<div class="row-actions"><button class="button ghost" data-tab="method">查看模型研究來源 ↗</button></div>':
+ state.tab==="backtest"?backtestPage():methodPage();
+ root.innerHTML=top()+notice()+tabs()+'<main class="page">'+content+'</main><footer>MAKEMONEY / WEEKLY DECISION TERMINAL <span>·</span> NO BROKER CONNECTION <span>·</span> NOT FINANCIAL ADVICE</footer>';
 }
 function selectSymbol(t){if(!safeSymbol(t))return;state.symbol=t;persist();render();load(t);}
+async function sendAIPacket(mode,symbol){
+ var packet=WeeklyUI.aiPacket(state,state.news,mode,symbol),copied=false;
+ try{if(navigator.clipboard&&navigator.clipboard.writeText){await navigator.clipboard.writeText(packet);copied=true;}}catch(e){}
+ if(!copied){
+  try{var el=document.createElement("textarea");el.value=packet;el.style.position="fixed";el.style.opacity="0";document.body.appendChild(el);el.select();copied=document.execCommand("copy");el.remove();}catch(e){}
+ }
+ if(copied){
+  toast("AI 研究指令已複製，請貼到 ChatGPT 對話。");
+  if(typeof window.open==="function")window.open("https://chatgpt.com/","_blank","noopener,noreferrer");
+ }else{
+  try{var blob=new Blob([packet],{type:"text/plain;charset=utf-8"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="MakeMoney-AI-analysis-"+todayUTC()+".txt";document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(url);},3000);toast("已輸出 AI 研究 TXT，請貼到 ChatGPT。");}catch(e){toast("複製失敗，請在 HTTPS 開啟網站。",true);}
+ }
+}
 function downloadJSON(){
  var body={format:"MakeMoney-backup-v1",exported_at:new Date().toISOString(),portfolio:state.portfolio,custom:state.custom,settings:{symbol:state.symbol,cost:state.cost,capital:state.capital,risk:state.risk,allocation:state.allocation,cash:state.cash,ddLimit:state.ddLimit}};
  var blob=new Blob([JSON.stringify(body,null,2)],{type:"application/json"}),url=URL.createObjectURL(blob),a=document.createElement("a");
@@ -170,16 +198,32 @@ function downloadJSON(){
  toast("私人備份已開始下載，請妥善保存。");
 }
 document.addEventListener("click",function(e){
- var t=e.target.closest("[data-tab],[data-symbol],[data-period],[data-remove],[data-action]");if(!t)return;
- if(t.dataset.tab){state.tab=t.dataset.tab;render();window.scrollTo(0,0);}
+ var t=e.target.closest("[data-tab],[data-symbol],[data-period],[data-remove],[data-action],[data-open-symbol],[data-return],[data-ai],[data-ai-symbol]");if(!t)return;
+ if(t.dataset.tab){state.tab=t.dataset.tab;state.detailSymbol=null;render();window.scrollTo(0,0);}
  if(t.dataset.symbol)selectSymbol(t.dataset.symbol);
+ if(t.dataset.openSymbol){state.detailSymbol=t.dataset.openSymbol;state.symbol=t.dataset.openSymbol;render();load(state.detailSymbol);window.scrollTo(0,0);}
+ if(t.dataset.return!=null){state.detailSymbol=null;render();}
  if(t.dataset.period){state.period=t.dataset.period;persist();render();}
  if(t.dataset.action==="backup")downloadJSON();
+ if(t.dataset.action==="cancel-import"){state.importPreview=null;render();}
+ if(t.dataset.action==="confirm-import"&&state.importPreview&&state.importPreview.holdings.length){
+   state.portfolio=state.importPreview.holdings;state.importPreview=null;persist();render();
+   Promise.all(state.portfolio.map(function(p){return load(p.symbol);})).then(function(){render();});
+   toast("已更新 "+state.portfolio.length+" 個持倉（本機保存）。");
+ }
+ if(t.dataset.ai||t.dataset.aiSymbol)sendAIPacket(t.dataset.aiSymbol?"symbol":t.dataset.ai,t.dataset.aiSymbol||state.symbol);
  if(t.dataset.remove!=null){state.portfolio.splice(Number(t.dataset.remove),1);persist();render();}
 });
 document.addEventListener("change",async function(e){
  var t=e.target;
  if(t.id==="symbol-select"||t.id==="back-symbol"){selectSymbol(t.value);return;}
+ if(t.id==="firstrade-import"&&t.files&&t.files[0]){
+   try{
+     state.importPreview=HoldingsImport.parse(await t.files[0].text());render();
+     toast("已解析 "+state.importPreview.holdings.length+" 檔，請先核對，尚未取代持倉。");
+   }catch(err){toast("匯入失敗："+err.message,true);}
+   return;
+ }
  if(t.id==="strategy-select"){state.strategy=t.value;persist();render();return;}
  if(t.id==="cost-input"){state.cost=Math.min(200,Math.max(0,+t.value||0));persist();render();return;}
  if(t.id==="dd-limit"){state.ddLimit=Math.min(80,Math.max(5,+t.value||40));persist();render();return;}
