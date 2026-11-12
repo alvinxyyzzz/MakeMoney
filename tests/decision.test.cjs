@@ -1,0 +1,42 @@
+const assert=require("node:assert/strict");
+const Q=require("../engine.js");
+global.QuantCore=Q;
+const D=require("../decision.js");
+const Imp=require("../holdings-import.js");
+global.DecisionLab=D;
+global.HoldingsImport=Imp;
+const UI=require("../weekly-ui.js");
+function sample(len,trend,initial="2022-01-03"){
+  const start=new Date(initial+"T12:00:00Z");
+  return Array.from({length:len},(_,i)=>{
+    const date=new Date(start.getTime()+i*86400000).toISOString().slice(0,10);
+    const c=100*Math.exp(trend*i+0.015*Math.sin(i/15));
+    return [date,c*.998,c*1.008,c*.990,c,1000+i];
+  });
+}
+const spy=sample(600,.0004),up=sample(600,.0008),down=sample(600,-.0008);
+const today="2023-08-25",h=[{symbol:"TEST",shares:10,cost:80}];
+const a=D.assess("TEST",up,spy,today);assert.ok(a);assert.ok(a.score>=0&&a.score<=100);
+assert.equal(a.symbol,"TEST");assert.ok(a.trend);assert.equal(a.factors.length,6);
+const bad=D.assess("TEST",down,spy,today);assert.equal(bad.trend,false);
+assert.ok(bad.decision.includes("防禦")||bad.decision.includes("行情過期"));
+assert.equal(D.assess("SHORT",up.slice(0,100),spy,today),null);
+const corr=D.corr(up,spy,126);assert.ok(corr>.90&&corr<=1.00001);
+const port=D.portfolio(h,{TEST:up},spy,800);assert.ok(port);
+assert.equal(port.list.length,1);assert.ok(port.total>800);
+assert.ok(port.largest.symbol==="TEST");
+const csv="Symbol,Quantity,Average Cost\nNVDA,10,140.00\nNVDA,5,160.00\nGOOGL,3,210.00\n";
+const parsed=Imp.parse(csv);assert.equal(parsed.holdings.length,2);
+assert.equal(parsed.holdings.find(x=>x.symbol==="NVDA").shares,15);
+assert.equal(parsed.holdings.find(x=>x.symbol==="NVDA").cost,146.6666667);
+assert.ok(Imp.csvRows('Symbol,Quantity,Average Cost\r\n"BRK.B",10,"$300.00"').length===2);
+assert.throws(()=>Imp.parse("foo,bar\nx,y"),/代號/);
+const state={data:{TEST:up,SPY:spy},portfolio:h,cash:800,symbol:"TEST",model:null},news={updated_at:null,symbols:{}};
+assert.ok(UI.weekly(state,news).includes("本週決策"));
+assert.ok(UI.discover(state,news).includes("跨板塊機會雷達"));
+assert.ok(UI.detail(state,news,"TEST").includes("投資決策卡"));
+const packet=UI.aiPacket(state,news,"portfolio","TEST");
+assert.ok(packet.includes("FIRSTRADE")===false);
+assert.ok(packet.includes("shares"));
+assert.ok(packet.includes("研究"));
+console.log("PASS: portfolio exposures, sector scanner, factor score, Firstrade parsing, 3 weekly pages, AI packet");
