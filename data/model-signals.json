@@ -1,0 +1,7 @@
+{
+  "trained_at": null,
+  "model": "LightGBM regression on Qlib-inspired factors",
+  "passed_research_gate": false,
+  "warning": "The model has not been trained and validated yet; do not interpret as active AI predictions.",
+  "symbols": {}
+}
