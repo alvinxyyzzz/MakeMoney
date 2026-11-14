@@ -1,323 +1,323 @@
 {
-  "updated_at": "2026-11-13T11:12:54Z",
+  "updated_at": "2026-11-14T05:17:56Z",
   "provider": "Yahoo Finance via yfinance (personal research only)",
   "price_mode": "historical adjusted OHLC; daily; not live",
   "symbols": {
     "NVDA": {
-      "first": "2018-11-13",
-      "last": "2026-11-12",
+      "first": "2018-11-14",
+      "last": "2026-11-13",
       "rows": 2010,
       "status": "updated"
     },
     "GOOGL": {
-      "first": "2018-11-13",
-      "last": "2026-11-12",
+      "first": "2018-11-14",
+      "last": "2026-11-13",
       "rows": 2010,
       "status": "updated"
     },
     "MSFT": {
-      "first": "2018-11-13",
-      "last": "2026-11-12",
+      "first": "2018-11-14",
+      "last": "2026-11-13",
       "rows": 2010,
       "status": "updated"
     },
     "AAPL": {
-      "first": "2018-11-13",
-      "last": "2026-11-12",
+      "first": "2018-11-14",
+      "last": "2026-11-13",
       "rows": 2010,
       "status": "updated"
     },
     "TSLA": {
-      "first": "2018-11-13",
-      "last": "2026-11-12",
+      "first": "2018-11-14",
+      "last": "2026-11-13",
       "rows": 2010,
       "status": "updated"
     },
     "TSM": {
-      "first": "2018-11-13",
-      "last": "2026-11-12",
+      "first": "2018-11-14",
+      "last": "2026-11-13",
       "rows": 2010,
       "status": "updated"
     },
     "ADBE": {
-      "first": "2018-11-13",
-      "last": "2026-11-12",
+      "first": "2018-11-14",
+      "last": "2026-11-13",
       "rows": 2010,
       "status": "updated"
     },
     "NOW": {
-      "first": "2018-11-13",
-      "last": "2026-11-12",
+      "first": "2018-11-14",
+      "last": "2026-11-13",
       "rows": 2010,
       "status": "updated"
     },
     "AMZN": {
-      "first": "2018-11-13",
-      "last": "2026-11-12",
+      "first": "2018-11-14",
+      "last": "2026-11-13",
       "rows": 2010,
       "status": "updated"
     },
     "META": {
-      "first": "2018-11-13",
-      "last": "2026-11-12",
+      "first": "2018-11-14",
+      "last": "2026-11-13",
       "rows": 2010,
       "status": "updated"
     },
     "AMD": {
-      "first": "2018-11-13",
-      "last": "2026-11-12",
+      "first": "2018-11-14",
+      "last": "2026-11-13",
       "rows": 2010,
       "status": "updated"
     },
     "CEG": {
       "first": "2022-01-19",
-      "last": "2026-11-12",
-      "rows": 1210,
+      "last": "2026-11-13",
+      "rows": 1211,
       "status": "updated"
     },
     "SPY": {
-      "first": "2018-11-13",
-      "last": "2026-11-12",
+      "first": "2018-11-14",
+      "last": "2026-11-13",
       "rows": 2010,
       "status": "updated"
     },
     "VOO": {
-      "first": "2018-11-13",
-      "last": "2026-11-12",
-      "rows": 2010,
+      "first": "2018-11-14",
+      "last": "2026-11-13",
+      "rows": 2009,
       "status": "updated"
     },
     "QQQM": {
       "first": "2020-10-13",
-      "last": "2026-11-12",
-      "rows": 1529,
+      "last": "2026-11-13",
+      "rows": 1530,
       "status": "updated"
     },
     "SCHD": {
-      "first": "2018-11-13",
-      "last": "2026-11-12",
-      "rows": 2009,
+      "first": "2018-11-14",
+      "last": "2026-11-13",
+      "rows": 2008,
       "status": "updated"
     },
     "RSP": {
-      "first": "2018-11-13",
-      "last": "2026-11-12",
+      "first": "2018-11-14",
+      "last": "2026-11-13",
       "rows": 2009,
       "status": "updated"
     },
     "IJR": {
-      "first": "2018-11-13",
-      "last": "2026-11-12",
+      "first": "2018-11-14",
+      "last": "2026-11-13",
       "rows": 2010,
       "status": "updated"
     },
     "AVGO": {
-      "first": "2018-11-13",
-      "last": "2026-11-12",
+      "first": "2018-11-14",
+      "last": "2026-11-13",
       "rows": 2010,
       "status": "updated"
     },
     "MU": {
-      "first": "2018-11-13",
-      "last": "2026-11-12",
+      "first": "2018-11-14",
+      "last": "2026-11-13",
       "rows": 2010,
       "status": "updated"
     },
     "ASML": {
-      "first": "2018-11-13",
-      "last": "2026-11-12",
+      "first": "2018-11-14",
+      "last": "2026-11-13",
       "rows": 2010,
       "status": "updated"
     },
     "AMAT": {
-      "first": "2018-11-13",
-      "last": "2026-11-12",
+      "first": "2018-11-14",
+      "last": "2026-11-13",
       "rows": 2010,
       "status": "updated"
     },
     "LRCX": {
-      "first": "2018-11-13",
-      "last": "2026-11-12",
+      "first": "2018-11-14",
+      "last": "2026-11-13",
       "rows": 2010,
       "status": "updated"
     },
     "ORCL": {
-      "first": "2018-11-13",
-      "last": "2026-11-12",
+      "first": "2018-11-14",
+      "last": "2026-11-13",
       "rows": 2010,
       "status": "updated"
     },
     "CRWV": {
       "first": "2025-03-28",
-      "last": "2026-11-12",
-      "rows": 410,
+      "last": "2026-11-13",
+      "rows": 411,
       "status": "updated"
     },
     "VRT": {
-      "first": "2018-11-13",
-      "last": "2026-11-12",
+      "first": "2018-11-14",
+      "last": "2026-11-13",
       "rows": 2010,
       "status": "updated"
     },
     "ETN": {
-      "first": "2018-11-13",
-      "last": "2026-11-12",
+      "first": "2018-11-14",
+      "last": "2026-11-13",
       "rows": 2010,
       "status": "updated"
     },
     "NEE": {
-      "first": "2018-11-13",
-      "last": "2026-11-12",
+      "first": "2018-11-14",
+      "last": "2026-11-13",
       "rows": 2010,
       "status": "updated"
     },
     "COST": {
-      "first": "2018-11-13",
-      "last": "2026-11-12",
+      "first": "2018-11-14",
+      "last": "2026-11-13",
       "rows": 2010,
       "status": "updated"
     },
     "WMT": {
-      "first": "2018-11-13",
-      "last": "2026-11-12",
+      "first": "2018-11-14",
+      "last": "2026-11-13",
       "rows": 2010,
       "status": "updated"
     },
     "PG": {
-      "first": "2018-11-13",
-      "last": "2026-11-12",
+      "first": "2018-11-14",
+      "last": "2026-11-13",
       "rows": 2010,
       "status": "updated"
     },
     "KO": {
-      "first": "2018-11-13",
-      "last": "2026-11-12",
+      "first": "2018-11-14",
+      "last": "2026-11-13",
       "rows": 2010,
       "status": "updated"
     },
     "MCD": {
-      "first": "2018-11-13",
-      "last": "2026-11-12",
+      "first": "2018-11-14",
+      "last": "2026-11-13",
       "rows": 2010,
       "status": "updated"
     },
     "JPM": {
-      "first": "2018-11-13",
-      "last": "2026-11-12",
+      "first": "2018-11-14",
+      "last": "2026-11-13",
       "rows": 2010,
       "status": "updated"
     },
     "V": {
-      "first": "2018-11-13",
-      "last": "2026-11-12",
+      "first": "2018-11-14",
+      "last": "2026-11-13",
       "rows": 2010,
       "status": "updated"
     },
     "MA": {
-      "first": "2018-11-13",
-      "last": "2026-11-12",
+      "first": "2018-11-14",
+      "last": "2026-11-13",
       "rows": 2010,
       "status": "updated"
     },
     "UNH": {
-      "first": "2018-11-13",
-      "last": "2026-11-12",
-      "rows": 2010,
+      "first": "2018-11-14",
+      "last": "2026-11-13",
+      "rows": 2009,
       "status": "updated"
     },
     "LLY": {
-      "first": "2018-11-13",
-      "last": "2026-11-12",
+      "first": "2018-11-14",
+      "last": "2026-11-13",
       "rows": 2010,
       "status": "updated"
     },
     "JNJ": {
-      "first": "2018-11-13",
-      "last": "2026-11-12",
+      "first": "2018-11-14",
+      "last": "2026-11-13",
       "rows": 2010,
       "status": "updated"
     },
     "CAT": {
-      "first": "2018-11-13",
-      "last": "2026-11-12",
+      "first": "2018-11-14",
+      "last": "2026-11-13",
       "rows": 2010,
       "status": "updated"
     },
     "DE": {
-      "first": "2018-11-13",
-      "last": "2026-11-12",
+      "first": "2018-11-14",
+      "last": "2026-11-13",
       "rows": 2010,
       "status": "updated"
     },
     "GE": {
-      "first": "2018-11-13",
-      "last": "2026-11-12",
+      "first": "2018-11-14",
+      "last": "2026-11-13",
       "rows": 2010,
       "status": "updated"
     },
     "O": {
-      "first": "2018-11-13",
-      "last": "2026-11-12",
+      "first": "2018-11-14",
+      "last": "2026-11-13",
       "rows": 2010,
       "status": "updated"
     },
     "PLD": {
-      "first": "2018-11-13",
-      "last": "2026-11-12",
+      "first": "2018-11-14",
+      "last": "2026-11-13",
       "rows": 2010,
       "status": "updated"
     },
     "AMT": {
-      "first": "2018-11-13",
-      "last": "2026-11-12",
+      "first": "2018-11-14",
+      "last": "2026-11-13",
       "rows": 2010,
       "status": "updated"
     },
     "HD": {
-      "first": "2018-11-13",
-      "last": "2026-11-12",
-      "rows": 2010,
+      "first": "2018-11-14",
+      "last": "2026-11-13",
+      "rows": 2009,
       "status": "updated"
     },
     "DIS": {
-      "first": "2018-11-13",
-      "last": "2026-11-12",
+      "first": "2018-11-14",
+      "last": "2026-11-13",
       "rows": 2010,
       "status": "updated"
     },
     "XOM": {
-      "first": "2018-11-13",
-      "last": "2026-11-12",
+      "first": "2018-11-14",
+      "last": "2026-11-13",
       "rows": 2010,
       "status": "updated"
     },
     "CVX": {
-      "first": "2018-11-13",
-      "last": "2026-11-12",
+      "first": "2018-11-14",
+      "last": "2026-11-13",
       "rows": 2010,
       "status": "updated"
     },
     "PANW": {
-      "first": "2018-11-13",
-      "last": "2026-11-12",
+      "first": "2018-11-14",
+      "last": "2026-11-13",
       "rows": 2010,
       "status": "updated"
     },
     "CRWD": {
       "first": "2019-06-12",
-      "last": "2026-11-12",
-      "rows": 1867,
+      "last": "2026-11-13",
+      "rows": 1868,
       "status": "updated"
     },
     "CRM": {
-      "first": "2018-11-13",
-      "last": "2026-11-12",
+      "first": "2018-11-14",
+      "last": "2026-11-13",
       "rows": 2010,
       "status": "updated"
     },
     "GLD": {
-      "first": "2018-11-13",
-      "last": "2026-11-12",
+      "first": "2018-11-14",
+      "last": "2026-11-13",
       "rows": 2010,
       "status": "updated"
     }
