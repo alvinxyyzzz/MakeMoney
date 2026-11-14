@@ -34,4 +34,19 @@ assert.ok(brief.includes("GOOGL"));
 assert.ok(brief.includes("shares"));
 assert.ok(brief.includes("未通過")||brief.includes("通過樣本外測試"));
 assert.ok(brief.length<7500,"limit request token budget");
+const missingSnapshot={asof:"2026-11-12",market:{type:"unknown",price:null},
+ ranked:[{symbol:"MISSING",price:null,score:null,asof:"2026-11-12",className:"wait"}]};
+const missingState={snapshot:missingSnapshot,data:{},cash:500,
+ portfolio:[{symbol:"MISSING",shares:3,cost:100}],fundamentals:{symbols:{}},model:null};
+const invalid=J.capture(missingState,{symbols:{}},"2026-11-13");
+assert.equal(invalid.holdings[0].price,null);
+assert.equal(invalid.holdings[0].score,null);
+assert.equal(invalid.market.price,null);
+assert.deepEqual(invalid.unpriced,["MISSING"]);
+assert.equal(invalid.pricedValue,500);
+assert.equal(invalid.portfolioComplete,false);
+const missingBrief=J.minimalPacket(missingState,{symbols:{}},"weekly");
+assert.ok(missingBrief.includes('"totalEstimatedAssets":null'));
+assert.ok(missingBrief.includes('"unpricedHoldings":["MISSING"]'));
+assert.ok(!missingBrief.includes('"totalEstimatedAssets":500'));
 console.log("PASS: weekly delta, local journal, reports, decisions and compact brief ("+brief.length+" characters)");
