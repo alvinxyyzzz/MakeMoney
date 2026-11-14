@@ -4,7 +4,7 @@
 (function(root){
 "use strict";
 const KEY="makemoney-weekly-journal-v3";
-const asNum=x=>Number.isFinite(+x)?+x:null;
+const asNum=x=>x===null||x===undefined||x===""||typeof x==="boolean"?null:(Number.isFinite(Number(x))?Number(x):null);
 const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
 const date=()=>new Date().toISOString().slice(0,10);
 function isoWeek(d){
@@ -24,16 +24,16 @@ function write(v){
  try{localStorage.setItem(KEY,JSON.stringify({history:v.history.slice(-16),reports:v.reports.slice(-16),actions:v.actions.slice(-100)}));return true;}catch(e){return false;}
 }
 function capture(state,news,now){
- const tickers=Object.keys(state.snapshot&&state.snapshot.symbols||{});
  const ranked=state.snapshot&&Array.isArray(state.snapshot.ranked)?state.snapshot.ranked:Object.values(state.snapshot&&state.snapshot.symbols||{});
  const by=new Map(ranked.map(x=>[x.symbol,x]));
  const holdings=(state.portfolio||[]).filter(p=>p&&p.symbol&&+p.shares>0).map(p=>{
   const score=by.get(p.symbol),b=state.data&&state.data[p.symbol];
-  const price=score&&asNum(score.price)!=null?+score.price:b&&b.length?+b[b.length-1].c:null;
-  return {symbol:p.symbol,shares:+p.shares,cost:+p.cost||null,price,score:score&&asNum(score.score),asof:score&&score.asof};
+  const researchPrice=score?asNum(score.price):null;
+  const price=researchPrice!==null&&researchPrice>0?researchPrice:b&&b.length&&asNum(b[b.length-1].c)>0?asNum(b[b.length-1].c):null;
+  return {symbol:p.symbol,shares:+p.shares,cost:asNum(p.cost),price,score:score?asNum(score.score):null,asof:score&&score.asof||null};
  }).sort((a,b)=>a.symbol.localeCompare(b.symbol));
  const picked=new Set(holdings.map(x=>x.symbol));
- const top=ranked.filter(x=>!picked.has(x.symbol)&&x.className!=="stale"&&x.className!=="defensive"&&!["SPY","VOO","QQQM","SCHD","RSP","IJR","GLD"].includes(x.symbol)).slice(0,12)
+ const top=ranked.filter(x=>!picked.has(x.symbol)&&x.className==="candidate"&&asNum(x.price)>0&&!["SPY","VOO","QQQM","SCHD","RSP","IJR","GLD"].includes(x.symbol)).slice(0,12)
   .map(x=>({symbol:x.symbol,score:asNum(x.score),price:asNum(x.price),asof:x.asof,decision:x.decision}));
  const involved=new Set(holdings.map(x=>x.symbol).concat(top.map(x=>x.symbol)));
  const newsTitles={};involved.forEach(t=>{
@@ -41,11 +41,11 @@ function capture(state,news,now){
   if(a&&a.length)newsTitles[t]={title:String(a[0].title||"").slice(0,140),published:a[0].published||"",url:a[0].url||""};
  });
  const md=state.snapshot&&state.snapshot.market||{};
- const all=holdings.filter(x=>x.price!=null),knownValue=all.reduce((s,p)=>s+p.shares*p.price,0),cash=Math.max(0,+state.cash||0);
+ const all=holdings.filter(x=>x.price!==null&&x.price>0),knownValue=all.reduce((s,p)=>s+p.shares*p.price,0),cash=Math.max(0,+state.cash||0);
  return {week:isoWeek(now),recordedAt:new Date().toISOString(),asof:state.snapshot&&state.snapshot.asof||null,
   market:{type:md.type||"unknown",label:md.label||"待載入",price:asNum(md.price),asof:md.asof||""},
-  holdings,unpriced:holdings.filter(x=>x.price==null).map(x=>x.symbol),
-  pricedValue:Math.round((knownValue+cash)*100)/100,cash,
+  holdings,unpriced:holdings.filter(x=>x.price===null||x.price<=0).map(x=>x.symbol),
+  pricedValue:Math.round((knownValue+cash)*100)/100,portfolioComplete:all.length===holdings.length,cash,
   top,newsTitles,newsUpdated:news&&news.updated_at||null,
   fundamentalUpdated:state.fundamentals&&state.fundamentals.updated_at||null,
   modelPassed:!!(state.model&&state.model.passed_research_gate)};
@@ -130,7 +130,9 @@ function minimalPacket(state,news,mode,symbol){
  });
  const recent=db.reports.filter(x=>x.week<=current.week).sort((a,b)=>b.createdAt.localeCompare(a.createdAt)).slice(0,1);
  const payload={week:current.week,market:current.market,priceAsOf:current.asof,newsUpdated:current.newsUpdated,
-  fundamentalsUpdated:current.fundamentalUpdated,portfolioIncomplete:current.unpriced,pricedValue:current.pricedValue,cash:current.cash,
+  fundamentalsUpdated:current.fundamentalUpdated,unpricedHoldings:current.unpriced,
+  portfolioComplete:current.portfolioComplete,knownAssetsOnly:current.portfolioComplete?null:current.pricedValue,
+  totalEstimatedAssets:current.portfolioComplete?current.pricedValue:null,cash:current.cash,
   delta:delta.slice(0,8).map(x=>({symbol:x.symbol,type:x.type,label:x.label,reason:x.reason})),
   tickers:candidates,previousResearch:recent.map(x=>({week:x.week,note:x.text.slice(0,650)})),modelValidated:current.modelPassed};
  const instructions=[
@@ -139,6 +141,7 @@ function minimalPacket(state,news,mode,symbol){
  "重點："+(mode==="symbol"?"深究"+symbol:mode==="discover"?"挑選本週最值得現在研究建倉的股票":"本週持倉變化與下一步操作")+"；先檢查有重大變化者，沒有變化者沿用原論點。",
  "針對真正需要行動的1–3檔，引用最新SEC/法說/財報、估值及反方論證；區分事實、推測、未知。請明確給出：現在可研究買入／加碼／持有／減碼／觀望、投入優先序、理由、失效條件及對組合的影響。",
  "Qlib/LightGBM 只有通過樣本外測試才能作證據，否則不能引用模型推薦。避免被高技術分數誤導。",
+ "如果有未定價持倉，禁止推算完整組合資產與個股權重，也不要對未知部位提出依權重加減碼。核實公開消息來源後再解讀影響。",
  "不要把調整後日線收盤價或二手估值當成即時成交價；如價格或來源未核實，明確標示。",
  "最後輸出短版投資決策摘要，附建議在下週保留的研究結論，方便我貼回MakeMoney，避免下次重做。","資料："+JSON.stringify(payload)
  ];
